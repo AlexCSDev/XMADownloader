@@ -1,13 +1,14 @@
 # XMADownloader
+**This application is in active development, some features are expected to not work as intended or not work at all**
 This application is designed for downloading FFXIV mods posted on XIV Mod Archive.
 
 IMPORTANT: You need a valid account to download NSFW content. You will be prompted to login on the first launch.
 
 ## Usage
-#### Download all available files from creator
+#### Download all available files from user
 XMADownloader.App.exe --url #page url#. Page url should follow one of the following patterns:
 * https://xivmodarchive.com/user/#numbers#
-#### Download all available files from creator into custom directory and save all possible data (mod description contents, raw html responses)
+#### Download all available files from user into custom directory and save all possible data (mod description contents, raw html responses)
 XMADownloader.App.exe --url #page url# --download-directory c:\downloads --descriptions --html
 #### Show available commands and their descriptions
 XMADownloader.App.exe --help
@@ -27,7 +28,7 @@ See docs\BUILDING.md
 	* Blacklist (configured in settings.json)
 * Plugins (via C#)
 	* Custom downloaders for adding download support for websites which need custom download logic
-	* XMADownloader comes with the following plugins by default: Google Drive, Mega.nz
+	* XMADownloader comes with the following plugins by default: Google Drive, Mega.nz, Patreon (not logged in mode only)
 
 ## License
 All files in this repository are licensed under the license listed in LICENSE.md file unless stated otherwise.

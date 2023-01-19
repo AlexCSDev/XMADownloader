@@ -5,10 +5,11 @@ using UniversalDownloaderPlatform.Common.Enums;
 using UniversalDownloaderPlatform.Common.Helpers;
 using UniversalDownloaderPlatform.Common.Interfaces.Models;
 using UniversalDownloaderPlatform.DefaultImplementations.Models;
+using UniversalDownloaderPlatform.PuppeteerEngine.Interfaces;
 
 namespace XMADownloader.Implementation.Models
 {
-    public record XMADownloaderSettings : UniversalDownloaderPlatformSettings
+    public record XMADownloaderSettings : UniversalDownloaderPlatformSettings, IPuppeteerSettings
     {
         public bool SaveDescriptions { get; init; }
 
@@ -38,6 +39,11 @@ namespace XMADownloader.Implementation.Models
         /// Fallback to using sha256 hash and Content-Type for filenames if Content-Disposition fails
         /// </summary>
         public bool FallbackToContentTypeFilenames { get; init; }
+        public string LoginPageAddress { get { return "https://www.xivmodarchive.com/login"; } }
+        public string LoginCheckAddress { get { return "https://www.xivmodarchive.com/dashboard"; } }
+        public string CaptchaCookieRetrievalAddress { get { return null; } }
+        public Uri RemoteBrowserAddress { get; init; }
+        public bool IsHeadlessBrowser { get; init; }
 
         public XMADownloaderSettings()
         {
@@ -48,6 +54,7 @@ namespace XMADownloader.Implementation.Models
             FallbackToContentTypeFilenames = false;
             MaxFilenameLength = 100;
             MaxSubdirectoryNameLength = 100;
+            IsHeadlessBrowser = true;
         }
     }
 }

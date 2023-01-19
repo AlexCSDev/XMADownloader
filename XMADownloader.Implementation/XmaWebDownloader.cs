@@ -5,8 +5,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using NLog;
-using XMADownloader.Common.Interfaces;
-using XMADownloader.PuppeteerEngine;
 using UniversalDownloaderPlatform.Common.Exceptions;
 using UniversalDownloaderPlatform.Common.Interfaces;
 using UniversalDownloaderPlatform.Common.Interfaces.Models;
@@ -22,15 +20,23 @@ namespace XMADownloader.Implementation
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public XmaWebDownloader(IRemoteFileSizeChecker remoteFileSizeChecker) : base(remoteFileSizeChecker)
+        private string _proxyServerAddress;
+
+        public XmaWebDownloader(IRemoteFileSizeChecker remoteFileSizeChecker, ICaptchaSolver captchaSolver) : base(remoteFileSizeChecker, captchaSolver)
         {
 
+        }
+
+        public override Task BeforeStart(IUniversalDownloaderPlatformSettings settings)
+        {
+            _proxyServerAddress = settings.ProxyServerAddress;
+            return base.BeforeStart(settings);
         }
 
         public override async Task DownloadFile(string url, string path, string refererUrl = null)
         {
             if (string.IsNullOrWhiteSpace(refererUrl))
-                refererUrl = "https://www.xivmodarchive.com"; //set referrer to xivmodarchive.com just in case
+                refererUrl = GetReferer(url);
 
             await base.DownloadFile(url, path, refererUrl);
         }
@@ -38,7 +44,7 @@ namespace XMADownloader.Implementation
         public override async Task<string> DownloadString(string url, string refererUrl = null)
         {
             if (string.IsNullOrWhiteSpace(refererUrl))
-                refererUrl = "https://www.xivmodarchive.com"; //set referrer to xivmodarchive.com just in case
+                refererUrl = GetReferer(url);
 
             return await base.DownloadString(url, refererUrl);
         }
@@ -51,7 +57,7 @@ namespace XMADownloader.Implementation
         public async Task<string> GetActualUrl(string url, string refererUrl = null)
         {
             if (string.IsNullOrWhiteSpace(refererUrl))
-                refererUrl = "https://www.xivmodarchive.com"; //set referrer to xivmodarchive.com just in case
+                refererUrl = GetReferer(url);
 
             //This is XMA url, fix it and return without additional checks
             if (url.StartsWith("/"))
@@ -106,14 +112,17 @@ namespace XMADownloader.Implementation
                     {
                         if (!responseMessage.IsSuccessStatusCode)
                         {
+                            if (await base.RunCaptchaCheck(url, refererUrl, responseMessage))
+                                return await GetActualUrlInternal(url, refererUrl, retry, retryTooManyRequests); //increase retry counter?
+
                             switch (responseMessage.StatusCode)
                             {
                                 case HttpStatusCode.BadRequest:
                                 case HttpStatusCode.Unauthorized:
-                                case HttpStatusCode.Forbidden:
                                 case HttpStatusCode.NotFound:
                                 case HttpStatusCode.MethodNotAllowed:
                                 case HttpStatusCode.Gone:
+                                case HttpStatusCode.Forbidden:
                                     throw new DownloadException($"Error status code returned: {responseMessage.StatusCode}",
                                         responseMessage.StatusCode, await responseMessage.Content.ReadAsStringAsync());
                                 case HttpStatusCode.Moved:
@@ -169,6 +178,14 @@ namespace XMADownloader.Implementation
             {
                 throw new DownloadException($"Unable to retrieve data from {url}: {ex.Message}", ex);
             }
+        }
+
+        private string GetReferer(string url)
+        {
+            if (url.Contains("patreon.com"))
+                    return "https://www.patreon.com";
+
+            return "https://www.xivmodarchive.com"; //return xivmodarchive.com for all other links just in case
         }
     }
 }

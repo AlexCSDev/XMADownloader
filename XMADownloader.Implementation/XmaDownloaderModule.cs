@@ -6,13 +6,13 @@ using Ninject.Modules;
 using XMADownloader.Engine;
 using XMADownloader.Implementation.Interfaces;
 using XMADownloader.Implementation.Models;
-using XMADownloader.PuppeteerEngine;
 using UniversalDownloaderPlatform.Common.Interfaces;
 using UniversalDownloaderPlatform.Common.Interfaces.Models;
 using UniversalDownloaderPlatform.Common.Interfaces.Plugins;
 using UniversalDownloaderPlatform.DefaultImplementations;
 using UniversalDownloaderPlatform.DefaultImplementations.Interfaces;
 using UniversalDownloaderPlatform.DefaultImplementations.Models;
+using UniversalDownloaderPlatform.PuppeteerEngine;
 
 namespace XMADownloader.Implementation
 {
@@ -20,6 +20,8 @@ namespace XMADownloader.Implementation
     {
         public override void Load()
         {
+            Kernel.Load(new PuppeteerEngineModule());
+
             Bind<IRemoteFileSizeChecker>().To<RemoteFileSizeChecker>().InSingletonScope();
             Bind<IWebDownloader>().To<XmaWebDownloader>().InSingletonScope();
             Bind<IRemoteFilenameRetriever>().To<XmaRemoteFilenameRetriever>().InSingletonScope();

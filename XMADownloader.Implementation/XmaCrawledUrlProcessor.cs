@@ -26,16 +26,14 @@ namespace XMADownloader.Implementation
 
         private ConcurrentDictionary<string, int> _fileCountDict; //file counter for duplicate check
         private XMADownloaderSettings _XMADownloaderSettings;
-        private static readonly Regex _googleDriveRegex;
-        private static readonly Regex _googleDocsRegex;
+        private static readonly Regex _googleDriveRegex = new Regex("https:\\/\\/drive\\.google\\.com\\/(?:file\\/d\\/|open\\?id\\=|drive\\/folders\\/|folderview\\?id=|drive\\/u\\/[0-9]+\\/folders\\/)([A-Za-z0-9_-]+)");
+        private static readonly Regex _googleDocsRegex = new Regex("https:\\/\\/docs\\.google\\.com\\/(?>document|spreadsheets)\\/d\\/([a-zA-Z0-9-_]+)");
+        private readonly static Regex _patreonRegex = new Regex("https:\\/\\/(>?www\\.)patreon.com\\/posts\\/([0-9]+)");
 
         static XmaCrawledUrlProcessor()
         {
             _invalidFilenameCharacters = new HashSet<char>(Path.GetInvalidFileNameChars());
             _invalidFilenameCharacters.Add(':');
-
-            _googleDriveRegex = new Regex("https:\\/\\/drive\\.google\\.com\\/(?:file\\/d\\/|open\\?id\\=|drive\\/folders\\/|folderview\\?id=|drive\\/u\\/[0-9]+\\/folders\\/)([A-Za-z0-9_-]+)");
-            _googleDocsRegex = new Regex("https:\\/\\/docs\\.google\\.com\\/(?>document|spreadsheets)\\/d\\/([a-zA-Z0-9-_]+)");
         }
 
         public XmaCrawledUrlProcessor(IRemoteFilenameRetriever remoteFilenameRetriever)
@@ -57,6 +55,7 @@ namespace XMADownloader.Implementation
         {
             XmaCrawledUrl crawledUrl = (XmaCrawledUrl)udpCrawledUrl;
 
+            //todo: this should *really* be reimplemented in plugin-agnostic way
             bool skipChecks = false; //skip sanitization, duplicate and other checks, do not pass filename to download path
             if (crawledUrl.Url.IndexOf("dropbox.com/", StringComparison.Ordinal) != -1)
             {
@@ -78,6 +77,11 @@ namespace XMADownloader.Implementation
             else if (_googleDriveRegex.Match(crawledUrl.Url).Success || _googleDocsRegex.Match(crawledUrl.Url).Success)
             {
                 _logger.Debug($"[{crawledUrl.ModId}] google drive/docs found: {crawledUrl.Url}");
+                skipChecks = true; //no need for checks if we use google drive plugin
+            }
+            else if(_patreonRegex.Match(crawledUrl.Url).Success)
+            {
+                _logger.Debug($"[{crawledUrl.ModId}] patreon: {crawledUrl.Url}");
                 skipChecks = true; //no need for checks if we use google drive plugin
             }
 

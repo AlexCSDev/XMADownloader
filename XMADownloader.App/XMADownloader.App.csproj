@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\submodules\UniversalDownloaderPlatform\UniversalDownloaderPlatform.PuppeteerEngine\UniversalDownloaderPlatform.PuppeteerEngine.csproj" />
     <ProjectReference Include="..\XMADownloader.Implementation\XMADownloader.Implementation.csproj" />
-    <ProjectReference Include="..\XMADownloader.PuppeteerEngine\XMADownloader.PuppeteerEngine.csproj" />
     <ProjectReference Include="..\submodules\UniversalDownloaderPlatform\UniversalDownloaderPlatform.Engine\UniversalDownloaderPlatform.Engine.csproj" />
   </ItemGroup>
 

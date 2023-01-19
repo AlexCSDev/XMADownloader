@@ -13,6 +13,7 @@ using UniversalDownloaderPlatform.Common.Interfaces;
 using UniversalDownloaderPlatform.Common.Interfaces.Models;
 using UniversalDownloaderPlatform.Common.Interfaces.Plugins;
 using UniversalDownloaderPlatform.DefaultImplementations.Models;
+using Ninject;
 
 namespace XMADownloader.Engine
 {
@@ -34,6 +35,11 @@ namespace XMADownloader.Engine
         public XmaDefaultPlugin(IWebDownloader webDownloader)
         {
             _webDownloader = webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
+        }
+
+        public void OnLoad(IDependencyResolver dependencyResolver)
+        {
+            //do nothing
         }
 
         public async Task<bool> IsSupportedUrl(string url)

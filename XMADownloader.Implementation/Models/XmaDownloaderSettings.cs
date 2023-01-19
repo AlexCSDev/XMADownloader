@@ -33,7 +33,7 @@ namespace XMADownloader.Implementation.Models
         /// <summary>
         /// Filenames will be truncated to this length
         /// </summary>
-        public int MaxFilenameLength { get; init; }
+        public int MaxFilenameLength { get; init; } //todo: move this into UDP?
 
         /// <summary>
         /// Fallback to using sha256 hash and Content-Type for filenames if Content-Disposition fails

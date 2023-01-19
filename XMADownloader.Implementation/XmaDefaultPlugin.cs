@@ -14,6 +14,7 @@ using UniversalDownloaderPlatform.Common.Interfaces.Models;
 using UniversalDownloaderPlatform.Common.Interfaces.Plugins;
 using UniversalDownloaderPlatform.DefaultImplementations.Models;
 using Ninject;
+using System.Runtime;
 
 namespace XMADownloader.Engine
 {
@@ -31,6 +32,8 @@ namespace XMADownloader.Engine
 
         public string Author => "Aleksey Tsutsey";
         public string ContactInformation => "https://github.com/Megalan/XMADownloader";
+
+        private IUniversalDownloaderPlatformSettings _settings;
 
         public XmaDefaultPlugin(IWebDownloader webDownloader)
         {
@@ -55,12 +58,12 @@ namespace XMADownloader.Engine
             if(crawledUrl == null)
                 throw new ArgumentNullException(nameof(crawledUrl));
 
-            await _webDownloader.DownloadFile(crawledUrl.Url, crawledUrl.DownloadPath, null); //referer is set in XmaWebDownloader
+            await _webDownloader.DownloadFile(crawledUrl.Url, Path.Combine(_settings.DownloadDirectory, crawledUrl.DownloadPath), null); //referer is set in XmaWebDownloader
         }
 
         public Task BeforeStart(IUniversalDownloaderPlatformSettings settings)
         {
-            //Do nothing
+            _settings = settings;
             return Task.CompletedTask;
         }
 
@@ -106,6 +109,24 @@ namespace XMADownloader.Engine
             }
 
             return true;
+        }
+
+        public Task<bool> ProcessCrawledUrl(ICrawledUrl crawledUrl)
+        {
+            if (crawledUrl.Url.IndexOf("dropbox.com/", StringComparison.Ordinal) != -1)
+            {
+                if (!crawledUrl.Url.EndsWith("?dl=1"))
+                {
+                    if (crawledUrl.Url.EndsWith("?dl=0"))
+                        crawledUrl.Url = crawledUrl.Url.Replace("?dl=0", "?dl=1");
+                    else
+                        crawledUrl.Url = $"{crawledUrl.Url}?dl=1";
+                }
+
+                _logger.Trace($"Dropbox url found: {crawledUrl.Url}");
+            }
+
+            return Task.FromResult(false); //we still want full processing for all crawled urls passed here 
         }
     }
 }

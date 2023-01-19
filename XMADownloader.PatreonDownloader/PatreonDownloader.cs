@@ -47,13 +47,13 @@ namespace XMADownloader.PatreonDownloader
             if (jsonRoot.Data.Attributes.PostFile != null)
             {
                 _logger.Info($"[Patreon] Downloading {postId} -> {jsonRoot.Data.Attributes.PostFile.Name}");
-                await _webDownloader.DownloadFile(jsonRoot.Data.Attributes.PostFile.Url, Path.Combine(downloadPath, jsonRoot.Data.Attributes.PostFile.Name), url);
+                await _webDownloader.DownloadFile(jsonRoot.Data.Attributes.PostFile.Url, Path.Combine(downloadPath, $"{postId}_main_{jsonRoot.Data.Attributes.PostFile.Name}"), url);
             }
 
             foreach(Included attachment in attachments)
             {
                 _logger.Info($"[Patreon] Downloading {postId} -> {attachment.Attributes.Name}");
-                await _webDownloader.DownloadFile(attachment.Attributes.Url, Path.Combine(downloadPath, $"{attachment.Id}_{attachment.Attributes.Name}"), url);
+                await _webDownloader.DownloadFile(attachment.Attributes.Url, Path.Combine(downloadPath, $"{postId}_{attachment.Id}_{attachment.Attributes.Name}"), url);
             }
         }
     }

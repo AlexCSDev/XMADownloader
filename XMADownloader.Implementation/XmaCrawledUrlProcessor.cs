@@ -28,7 +28,6 @@ namespace XMADownloader.Implementation
         private XMADownloaderSettings _XMADownloaderSettings;
         private static readonly Regex _googleDriveRegex = new Regex("https:\\/\\/drive\\.google\\.com\\/(?:file\\/d\\/|open\\?id\\=|drive\\/folders\\/|folderview\\?id=|drive\\/u\\/[0-9]+\\/folders\\/)([A-Za-z0-9_-]+)");
         private static readonly Regex _googleDocsRegex = new Regex("https:\\/\\/docs\\.google\\.com\\/(?>document|spreadsheets)\\/d\\/([a-zA-Z0-9-_]+)");
-        private readonly static Regex _patreonRegex = new Regex("https:\\/\\/(>?www\\.)patreon.com\\/posts\\/([0-9]+)");
 
         static XmaCrawledUrlProcessor()
         {
@@ -55,39 +54,9 @@ namespace XMADownloader.Implementation
         {
             XmaCrawledUrl crawledUrl = (XmaCrawledUrl)udpCrawledUrl;
 
-            //todo: this should *really* be reimplemented in plugin-agnostic way
-            bool skipChecks = false; //skip sanitization, duplicate and other checks, do not pass filename to download path
-            if (crawledUrl.Url.IndexOf("dropbox.com/", StringComparison.Ordinal) != -1)
-            {
-                if (!crawledUrl.Url.EndsWith("?dl=1"))
-                {
-                    if (crawledUrl.Url.EndsWith("?dl=0"))
-                        crawledUrl.Url = crawledUrl.Url.Replace("?dl=0", "?dl=1");
-                    else
-                        crawledUrl.Url = $"{crawledUrl.Url}?dl=1";
-                }
-
-                _logger.Debug($"[{crawledUrl.ModId}] This is a dropbox entry: {crawledUrl.Url}");
-            }
-            else if (crawledUrl.Url.StartsWith("https://mega.nz/"))
-            {
-                _logger.Debug($"[{crawledUrl.ModId}] mega found: {crawledUrl.Url}");
-                skipChecks = true; //mega plugin expects to see only path to the folder where everything will be saved
-            }
-            else if (_googleDriveRegex.Match(crawledUrl.Url).Success || _googleDocsRegex.Match(crawledUrl.Url).Success)
-            {
-                _logger.Debug($"[{crawledUrl.ModId}] google drive/docs found: {crawledUrl.Url}");
-                skipChecks = true; //no need for checks if we use google drive plugin
-            }
-            else if(_patreonRegex.Match(crawledUrl.Url).Success)
-            {
-                _logger.Debug($"[{crawledUrl.ModId}] patreon: {crawledUrl.Url}");
-                skipChecks = true; //no need for checks if we use google drive plugin
-            }
-
             string filename = "";
 
-            if (!skipChecks)
+            if (!crawledUrl.IsProcessedByPlugin)
             {
                 /*if (!_XMADownloaderSettings.IsUseSubDirectories)
                     filename = $"{crawledUrl.ModId}_";
@@ -186,12 +155,12 @@ namespace XMADownloader.Implementation
                 }
             }
 
-            string downloadDirectory = Path.Combine(_XMADownloaderSettings.DownloadDirectory, crawledUrl.UserId.ToString());
+            string downloadDirectory = crawledUrl.UserId.ToString();
 
             if (/*_XMADownloaderSettings.IsUseSubDirectories*/true)
                 downloadDirectory = Path.Combine(downloadDirectory, PostSubdirectoryHelper.CreateNameFromPattern(crawledUrl, _XMADownloaderSettings.SubDirectoryPattern, _XMADownloaderSettings.MaxSubdirectoryNameLength));
 
-            crawledUrl.DownloadPath = !skipChecks ? Path.Combine(downloadDirectory, filename) : downloadDirectory + Path.DirectorySeparatorChar;
+            crawledUrl.DownloadPath = !crawledUrl.IsProcessedByPlugin ? Path.Combine(downloadDirectory, filename) : downloadDirectory + Path.DirectorySeparatorChar;
 
             return true;
         }

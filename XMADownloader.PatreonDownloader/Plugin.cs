@@ -8,6 +8,7 @@ using UniversalDownloaderPlatform.Common.Exceptions;
 using UniversalDownloaderPlatform.Common.Interfaces;
 using UniversalDownloaderPlatform.Common.Interfaces.Models;
 using UniversalDownloaderPlatform.Common.Interfaces.Plugins;
+using UniversalDownloaderPlatform.DefaultImplementations.Models;
 
 namespace XMADownloader.PatreonDownloader
 {
@@ -41,7 +42,7 @@ namespace XMADownloader.PatreonDownloader
             try
             {
                 Match match = _postPageRegex.Match(crawledUrl.Url);
-                await _patreonDownloader.DownloadUrlAsync(Convert.ToInt64(match.Groups[1].Value), _settings.DownloadDirectory);
+                await _patreonDownloader.DownloadUrlAsync(Convert.ToInt64(match.Groups[1].Value), Path.Combine(_settings.DownloadDirectory, crawledUrl.DownloadPath));
             }
             catch (DownloadException ex)
             {
@@ -63,6 +64,16 @@ namespace XMADownloader.PatreonDownloader
         {
             Match match = _postPageRegex.Match(url);
             return Task.FromResult(match.Success);
+        }
+
+        public Task<bool> ProcessCrawledUrl(ICrawledUrl crawledUrl)
+        {
+            if (_postPageRegex.Match(crawledUrl.Url).Success)
+            {
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
         }
     }
 }

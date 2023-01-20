@@ -30,7 +30,9 @@ namespace XMADownloader.Implementation
             Bind<IPageCrawler>().To<XmaPageCrawler>().InSingletonScope();
             Bind<IPlugin>().To<XmaDefaultPlugin>().WhenInjectedInto<IPluginManager>();
             Bind<IUniversalDownloaderPlatformSettings>().To<XMADownloaderSettings>();
+
             Rebind<ICookieValidator>().To<XmaCookieValidator>().InSingletonScope();
+            Rebind<ICrawlResultsExporter>().To<XmaCrawlResultsExporter>().InSingletonScope();
         }
     }
 }

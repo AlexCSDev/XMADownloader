@@ -10,6 +10,7 @@ using UniversalDownloaderPlatform.Common.Exceptions;
 using UniversalDownloaderPlatform.Common.Interfaces;
 using UniversalDownloaderPlatform.Common.Interfaces.Models;
 using XMADownloader.Implementation.Models;
+using XMADownloader.Implementation.Models.Export;
 
 namespace XMADownloader.Implementation
 {
@@ -41,7 +42,8 @@ namespace XMADownloader.Implementation
             return new XmaCrawlTargetInfo
             {
                 Name = usernameNode.InnerText.Trim(),
-                Id = Convert.ToInt64(match.Groups[1].Value)
+                Id = Convert.ToInt64(match.Groups[1].Value),
+                CrawledMods = new List<CrawledMod>()
             };
         }
     }

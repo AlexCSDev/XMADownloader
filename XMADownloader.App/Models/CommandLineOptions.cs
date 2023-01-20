@@ -6,16 +6,16 @@ namespace XMADownloader.App.Models
 {
     class CommandLineOptions
     {
-        [Option("url", Required = true, HelpText = "Url of the creator's page")]
+        [Option("url", Required = true, HelpText = "Url of the user page to download")]
         public string Url { get; set; }
 
-        [Option("descriptions", Required = false, HelpText = "Save post descriptions", Default = false)]
+        [Option("descriptions", Required = false, HelpText = "Save mod descriptions into a separate html files", Default = false)]
         public bool SaveDescriptions { get; set; }
 
-        [Option("html", Required = false, HelpText = "Save raw html files", Default = false)]
+        [Option("html", Required = false, HelpText = "Save raw html files for search pages and mod pages", Default = false)]
         public bool SaveHtml { get; set; }
 
-        [Option("download-directory", Required = false, HelpText = "Directory to save all downloaded files in, default: #AppDirectory#/downloads/#CreatorName#.")]
+        [Option("download-directory", Required = false, HelpText = "Directory to save all downloaded files in, default: #AppDirectory#/downloads.")]
         public string DownloadDirectory { get; set; }
 
         [Option("log-level", Required = false, HelpText = "Logging level. Possible options: Default, Debug, Trace. Affects both console and file logging.", Default = LogLevel.Default)]

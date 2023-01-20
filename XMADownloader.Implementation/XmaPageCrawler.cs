@@ -83,7 +83,7 @@ namespace XMADownloader.Implementation
 
                 if(_xmaDownloaderSettings.SaveHtml)
                 {
-                    string path = Path.Combine(_xmaDownloaderSettings.DownloadDirectory, xmaCrawlTargetInfo.Id.ToString(), $"page_{page}.html");
+                    string path = Path.Combine(_xmaDownloaderSettings.DownloadDirectory, xmaCrawlTargetInfo.Id.ToString(), $"search_page_{page}.html");
                     if(!Directory.Exists(path))
                         Directory.CreateDirectory(Path.GetDirectoryName(path));
                     await File.WriteAllTextAsync(path, searchPageHtml);
@@ -178,12 +178,12 @@ namespace XMADownloader.Implementation
             if (titleNode == null)
                 throw new Exception("Title node not found!");
 
-            string modName = HttpUtility.HtmlDecode(titleNode.InnerText.Trim());
+            string modName = HttpUtility.HtmlDecode(titleNode.InnerText.Trim()).Trim();
 
             HtmlNode userLinkNode = doc.DocumentNode.SelectSingleNode("//a[contains(@class,\"user-card-link\")]");
             if (userLinkNode == null)
                 throw new Exception("User link node not found!");
-            long userId = Convert.ToInt64(userLinkNode.Attributes["href"].Value.Replace("/user/", ""));
+            long userId = Convert.ToInt64(userLinkNode.Attributes["href"].Value.Replace("/user/", "").Trim());
 
             HtmlNode filesListNode = doc.DocumentNode.SelectSingleNode("//div[contains(@class,\"tab-content\")]/div[@id=\"files\"]/div");
             if (filesListNode == null)

@@ -15,6 +15,9 @@ namespace XMADownloader.App.Models
         [Option("html", Required = false, HelpText = "Save raw html files for search pages and mod pages", Default = false)]
         public bool SaveHtml { get; set; }
 
+        [Option("export-results-json", Required = false, HelpText = "Export crawl/download results into json file", Default = false)]
+        public bool ExportCrawlJson { get; set; }
+
         [Option("download-directory", Required = false, HelpText = "Directory to save all downloaded files in, default: #AppDirectory#/downloads.")]
         public string DownloadDirectory { get; set; }
 

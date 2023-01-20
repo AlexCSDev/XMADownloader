@@ -161,7 +161,8 @@ namespace XMADownloader.App
                 MaxFilenameLength = commandLineOptions.MaxFilenameLength,
                 FallbackToContentTypeFilenames = commandLineOptions.FilenamesFallbackToContentType,
                 ProxyServerAddress = commandLineOptions.ProxyServerAddress,
-                RemoteBrowserAddress = commandLineOptions.RemoteBrowserAddress != null ? new Uri(commandLineOptions.RemoteBrowserAddress) : null
+                RemoteBrowserAddress = commandLineOptions.RemoteBrowserAddress != null ? new Uri(commandLineOptions.RemoteBrowserAddress) : null,
+                ExportCrawlResults = commandLineOptions.ExportCrawlJson
             };
 
             return settings;

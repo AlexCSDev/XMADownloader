@@ -17,16 +17,18 @@ namespace XMADownloader.Implementation
     {
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private string _downloadDirectory = null;
+        private bool _exportCrawlResults;
 
         public Task BeforeStart(IUniversalDownloaderPlatformSettings settings)
         {
             _downloadDirectory = settings.DownloadDirectory;
+            _exportCrawlResults = ((XMADownloaderSettings)settings).ExportCrawlResults;
             return Task.CompletedTask;
         }
 
         public async Task ExportCrawlResults(ICrawlTargetInfo crawlTargetInfo, List<ICrawledUrl> crawledUrls)
         {
-            if (crawledUrls.Count == 0)
+            if (!_exportCrawlResults || crawledUrls.Count == 0)
                 return;
             XmaCrawlTargetInfo xmaCrawlTargetInfo = (XmaCrawlTargetInfo)crawlTargetInfo;
 

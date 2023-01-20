@@ -44,6 +44,7 @@ namespace XMADownloader.Implementation.Models
         public string CaptchaCookieRetrievalAddress { get { return null; } }
         public Uri RemoteBrowserAddress { get; init; }
         public bool IsHeadlessBrowser { get; init; }
+        public bool ExportCrawlResults { get; set; }
 
         public XMADownloaderSettings()
         {

@@ -13,6 +13,7 @@ using UniversalDownloaderPlatform.DefaultImplementations.Interfaces;
 using System.IO;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace XMADownloader.Implementation
 {
@@ -20,25 +21,39 @@ namespace XMADownloader.Implementation
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        private string _proxyServerAddress;
+        private readonly Random _random;
+        private readonly SemaphoreSlim _downloadThrottlerSemaphore;
 
-        public XmaWebDownloader(IRemoteFileSizeChecker remoteFileSizeChecker, ICaptchaSolver captchaSolver) : base(remoteFileSizeChecker, captchaSolver)
+        public XmaWebDownloader(ICaptchaSolver captchaSolver) : base(captchaSolver)
         {
-
+            _random = new Random();
+            _downloadThrottlerSemaphore = new SemaphoreSlim(1, 1);
         }
 
-        public override Task BeforeStart(IUniversalDownloaderPlatformSettings settings)
-        {
-            _proxyServerAddress = settings.ProxyServerAddress;
-            return base.BeforeStart(settings);
-        }
-
-        public override async Task DownloadFile(string url, string path, string refererUrl = null)
+        public override async Task DownloadFile(string url, string path, long fileSize, string refererUrl = null)
         {
             if (string.IsNullOrWhiteSpace(refererUrl))
                 refererUrl = GetReferer(url);
 
-            await base.DownloadFile(url, path, refererUrl);
+            bool isXMAurl = url.ToLowerInvariant().Contains("xivmodarchive.com");
+
+            try
+            {
+                //Throttle XMA downloads to 1 file at once + delay
+                //because of aggressive rate limiting
+                if (isXMAurl)
+                {
+                    await _downloadThrottlerSemaphore.WaitAsync();
+                    await Task.Delay(1000 * _random.Next(2, 4));
+                }
+                
+                await base.DownloadFile(url, path, fileSize, refererUrl);
+            }
+            finally
+            {
+                if (isXMAurl)
+                    _downloadThrottlerSemaphore.Release();
+            }
         }
 
         public override async Task<string> DownloadString(string url, string refererUrl = null)

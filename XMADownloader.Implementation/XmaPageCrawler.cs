@@ -22,6 +22,8 @@ using UniversalDownloaderPlatform.Common.Exceptions;
 using System.Net;
 using System.Globalization;
 using XMADownloader.Implementation.Models.Export;
+using UniversalDownloaderPlatform.DefaultImplementations.Interfaces;
+using XMADownloader.Common.Models;
 
 namespace XMADownloader.Implementation
 {
@@ -33,8 +35,9 @@ namespace XMADownloader.Implementation
         private readonly XmaWebDownloader _webDownloader;
         private readonly IPluginManager _pluginManager;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Random _random;
 
-        private XMADownloaderSettings _xmaDownloaderSettings;
+        private XmaDownloaderSettings _xmaDownloaderSettings;
 
         //represents "global" hash list of already parsed urls because we can't have ref variables in async methods
         //we need it to not end up in situation with endless loop of parsing mods referencing each other
@@ -49,11 +52,13 @@ namespace XMADownloader.Implementation
         {
             _webDownloader = (XmaWebDownloader)webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
             _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
+
+            _random = new Random();
         }
 
         public async Task BeforeStart(IUniversalDownloaderPlatformSettings settings)
         {
-            _xmaDownloaderSettings = (XMADownloaderSettings) settings;
+            _xmaDownloaderSettings = (XmaDownloaderSettings) settings;
 
             _parsedUrls = new ConcurrentHashSet<string>();
         }
@@ -139,12 +144,16 @@ namespace XMADownloader.Implementation
         /// <exception cref="Exception"></exception>
         private async Task<(List<XmaCrawledUrl>, List<CrawledMod>)> ParseModPage(string id, bool isPrivate = false)
         {
+
             List<XmaCrawledUrl> crawledUrls = new List<XmaCrawledUrl>();
             List<CrawledMod> crawledMods = new List<CrawledMod>();
 
             HashSet<string> parsedUrlsForThisMod = new HashSet<string>();
 
             OnPostCrawlStart(new PostCrawlEventArgs(id, true));
+
+            //XMA got pretty aggressive rate limiting when you download a lot, let's try to not trigger it
+            await Task.Delay(1000 * _random.Next(2, 4));
 
             string html = null;
 
@@ -335,6 +344,8 @@ namespace XMADownloader.Implementation
             }
 
             OnPostCrawlEnd(new PostCrawlEventArgs(id, true));
+
+
 
             return (crawledUrls, crawledMods);
         }

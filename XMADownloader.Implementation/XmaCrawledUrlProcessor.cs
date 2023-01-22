@@ -14,6 +14,11 @@ using UniversalDownloaderPlatform.Common.Exceptions;
 using UniversalDownloaderPlatform.Common.Helpers;
 using UniversalDownloaderPlatform.Common.Interfaces;
 using UniversalDownloaderPlatform.Common.Interfaces.Models;
+using System.Net;
+using System.Threading;
+using UniversalDownloaderPlatform.DefaultImplementations.Interfaces;
+using UniversalDownloaderPlatform.DefaultImplementations;
+using XMADownloader.Common.Models;
 
 namespace XMADownloader.Implementation
 {
@@ -21,13 +26,10 @@ namespace XMADownloader.Implementation
     {
         private static readonly HashSet<char> _invalidFilenameCharacters;
 
-        private readonly IRemoteFilenameRetriever _remoteFilenameRetriever;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         private ConcurrentDictionary<string, int> _fileCountDict; //file counter for duplicate check
-        private XMADownloaderSettings _XMADownloaderSettings;
-        private static readonly Regex _googleDriveRegex = new Regex("https:\\/\\/drive\\.google\\.com\\/(?:file\\/d\\/|open\\?id\\=|drive\\/folders\\/|folderview\\?id=|drive\\/u\\/[0-9]+\\/folders\\/)([A-Za-z0-9_-]+)");
-        private static readonly Regex _googleDocsRegex = new Regex("https:\\/\\/docs\\.google\\.com\\/(?>document|spreadsheets)\\/d\\/([a-zA-Z0-9-_]+)");
+        private XmaDownloaderSettings _xmaDownloaderSettings;
 
         static XmaCrawledUrlProcessor()
         {
@@ -35,19 +37,15 @@ namespace XMADownloader.Implementation
             _invalidFilenameCharacters.Add(':');
         }
 
-        public XmaCrawledUrlProcessor(IRemoteFilenameRetriever remoteFilenameRetriever)
+        public XmaCrawledUrlProcessor()
         {
-            _remoteFilenameRetriever = remoteFilenameRetriever ??
-                                       throw new ArgumentNullException(nameof(remoteFilenameRetriever));
 
-            _logger.Debug("KemonoCrawledUrlProcessor initialized");
         }
 
         public async Task BeforeStart(IUniversalDownloaderPlatformSettings settings)
         {
             _fileCountDict = new ConcurrentDictionary<string, int>();
-            _XMADownloaderSettings = (XMADownloaderSettings) settings;
-            await _remoteFilenameRetriever.BeforeStart(settings);
+            _xmaDownloaderSettings = (XmaDownloaderSettings) settings;
         }
 
         public async Task<bool> ProcessCrawledUrl(ICrawledUrl udpCrawledUrl)
@@ -63,60 +61,16 @@ namespace XMADownloader.Implementation
                 else
                     filename = "";*/
 
-                /*switch (crawledUrl.UrlType)
-                {
-                    case XmaCrawledUrlType.PostFile:
-                        filename += "post";
-                        break;
-                    case XmaCrawledUrlType.PostAttachment:
-                        filename += $"attachment";
-                        if (!_XMADownloaderSettings.IsUseLegacyFilenaming)
-                            filename += $"_{crawledUrl.FileId}";
-                        break;
-                    case XmaCrawledUrlType.PostMedia:
-                        filename += $"media";
-                        if (!_XMADownloaderSettings.IsUseLegacyFilenaming)
-                            filename += $"_{crawledUrl.FileId}";
-                        break;
-                    case XmaCrawledUrlType.AvatarFile:
-                        filename += "avatar";
-                        break;
-                    case XmaCrawledUrlType.CoverFile:
-                        filename += "cover";
-                        break;
-                    case XmaCrawledUrlType.ExternalUrl:
-                        filename += "external";
-                        break;
-                    default:
-                        throw new ArgumentException($"Invalid url type: {crawledUrl.UrlType}");
-                }*/
-
                 if (crawledUrl.Filename == null)
-                {
-                    _logger.Debug($"No filename for {crawledUrl.Url}, trying to retrieve...");
-                    string remoteFilename =
-                        await _remoteFilenameRetriever.GetRemoteFileName(crawledUrl.Url, "https://www.xivmodarchive.com");
+                    throw new DownloadException($"[{crawledUrl.ModId}] No filename for {crawledUrl.Url}!");
 
-                    if (remoteFilename == null)
-                    {
-                        throw new DownloadException(
-                            $"[{crawledUrl.ModId}] Unable to retrieve name for {crawledUrl.Url}");
-                    }
-
-                    filename = remoteFilename;
-                }
-                else
-                {
-                    filename = crawledUrl.Filename;
-                }
-
-                _logger.Debug($"Filename for {crawledUrl.Url} is {filename}");
+                filename = crawledUrl.Filename;
 
                 _logger.Debug($"Sanitizing filename: {filename}");
                 filename = PathSanitizer.SanitizePath(filename);
                 _logger.Debug($"Sanitized filename: {filename}");
 
-                if (filename.Length > _XMADownloaderSettings.MaxFilenameLength)
+                if (filename.Length > _xmaDownloaderSettings.MaxFilenameLength)
                 {
                     _logger.Debug($"Filename is too long, will be truncated: {filename}");
                     string extension = Path.GetExtension(filename);
@@ -125,7 +79,7 @@ namespace XMADownloader.Implementation
                         _logger.Warn($"File extension for file {filename} is longer 4 characters and won't be appended to truncated filename!");
                         extension = "";
                     }
-                    filename = filename.Substring(0, _XMADownloaderSettings.MaxFilenameLength) + extension;
+                    filename = filename.Substring(0, _xmaDownloaderSettings.MaxFilenameLength) + extension;
                     _logger.Debug($"Truncated filename: {filename}");
                 }
 
@@ -158,7 +112,7 @@ namespace XMADownloader.Implementation
             string downloadDirectory = crawledUrl.UserId.ToString();
 
             if (/*_XMADownloaderSettings.IsUseSubDirectories*/true)
-                downloadDirectory = Path.Combine(downloadDirectory, PostSubdirectoryHelper.CreateNameFromPattern(crawledUrl, _XMADownloaderSettings.SubDirectoryPattern, _XMADownloaderSettings.MaxSubdirectoryNameLength));
+                downloadDirectory = Path.Combine(downloadDirectory, PostSubdirectoryHelper.CreateNameFromPattern(crawledUrl, _xmaDownloaderSettings.SubDirectoryPattern, _xmaDownloaderSettings.MaxSubdirectoryNameLength));
 
             crawledUrl.DownloadPath = !crawledUrl.IsProcessedByPlugin ? Path.Combine(downloadDirectory, filename) : downloadDirectory + Path.DirectorySeparatorChar;
 

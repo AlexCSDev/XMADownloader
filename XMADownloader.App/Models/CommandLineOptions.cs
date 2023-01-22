@@ -37,7 +37,7 @@ namespace XMADownloader.App.Models
         public FileExistsAction FileExistsAction { get; set; }
 
         [Option("disable-remote-file-size-check", Required = false, 
-            HelpText = "Do not ask the server for the file size (if it's available) and do not use it in various pre-download checks if the file already exists on the disk. Warning: will result in increased bandwidth usage if used with --file-exists-action BackupIfDifferent, ReplaceIfDifferent, AlwaysReplace.", 
+            HelpText = "Do not ask the server for the file size (if it's available) and do not use it in various pre-download and post-download checks if the file already exists on the disk. Can help get around aggressive rate limits. Warning: will result in increased bandwidth usage if used with --file-exists-action BackupIfDifferent, ReplaceIfDifferent, AlwaysReplace.", 
             Default = false)]
         public bool IsDisableRemoteFileSizeCheck { get; set; }
 

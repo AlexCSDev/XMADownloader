@@ -11,6 +11,7 @@ using XMADownloader.Implementation.Models;
 using UniversalDownloaderPlatform.Common.Enums;
 using UniversalDownloaderPlatform.Common.Events;
 using UniversalDownloaderPlatform.Engine;
+using XMADownloader.Common.Models;
 
 namespace XMADownloader.App
 {
@@ -124,7 +125,7 @@ namespace XMADownloader.App
             _universalDownloader.CrawlerMessage += UniversalDownloaderOnCrawlerMessage;
             _universalDownloader.FileDownloaded += UniversalDownloaderOnFileDownloaded;
 
-            XMADownloaderSettings settings = await InitializeSettings(commandLineOptions);
+            XmaDownloaderSettings settings = await InitializeSettings(commandLineOptions);
             await _universalDownloader.Download(commandLineOptions.Url, settings);
 
             _universalDownloader.StatusChanged -= UniversalDownloaderOnStatusChanged;
@@ -137,7 +138,7 @@ namespace XMADownloader.App
             _universalDownloader = null;
         }
 
-        private static async Task<XMADownloaderSettings> InitializeSettings(CommandLineOptions commandLineOptions)
+        private static async Task<XmaDownloaderSettings> InitializeSettings(CommandLineOptions commandLineOptions)
         {
             if (!string.IsNullOrWhiteSpace(commandLineOptions.ProxyServerAddress) &&
                 !Uri.TryCreate(commandLineOptions.ProxyServerAddress, UriKind.Absolute, out _))
@@ -145,7 +146,7 @@ namespace XMADownloader.App
                 throw new Exception($"Invalid proxy server address: {commandLineOptions.ProxyServerAddress}");
             }
 
-            XMADownloaderSettings settings = new XMADownloaderSettings
+            XmaDownloaderSettings settings = new XmaDownloaderSettings
             {
                 UrlBlackList = (_configuration["UrlBlackList"] ?? "").ToLowerInvariant().Split("|").ToList(),
                 UserAgent = null,

@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\submodules\UniversalDownloaderPlatform\UniversalDownloaderPlatform.DefaultImplementations\UniversalDownloaderPlatform.DefaultImplementations.csproj" />
+    <ProjectReference Include="..\XMADownloader.Common\XMADownloader.Common.csproj" />
   </ItemGroup>
 
 </Project>

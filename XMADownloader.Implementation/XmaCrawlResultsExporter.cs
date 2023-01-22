@@ -10,6 +10,7 @@ using UniversalDownloaderPlatform.Common.Interfaces.Models;
 using UniversalDownloaderPlatform.Common.Interfaces;
 using XMADownloader.Implementation.Models;
 using XMADownloader.Implementation.Models.Export;
+using XMADownloader.Common.Models;
 
 namespace XMADownloader.Implementation
 {
@@ -22,7 +23,7 @@ namespace XMADownloader.Implementation
         public Task BeforeStart(IUniversalDownloaderPlatformSettings settings)
         {
             _downloadDirectory = settings.DownloadDirectory;
-            _exportCrawlResults = ((XMADownloaderSettings)settings).ExportCrawlResults;
+            _exportCrawlResults = ((XmaDownloaderSettings)settings).ExportCrawlResults;
             return Task.CompletedTask;
         }
 

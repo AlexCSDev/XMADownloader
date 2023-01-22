@@ -7,9 +7,9 @@ using UniversalDownloaderPlatform.Common.Interfaces.Models;
 using UniversalDownloaderPlatform.DefaultImplementations.Models;
 using UniversalDownloaderPlatform.PuppeteerEngine.Interfaces;
 
-namespace XMADownloader.Implementation.Models
+namespace XMADownloader.Common.Models
 {
-    public record XMADownloaderSettings : UniversalDownloaderPlatformSettings, IPuppeteerSettings
+    public record XmaDownloaderSettings : UniversalDownloaderPlatformSettings, IPuppeteerSettings
     {
         public bool SaveDescriptions { get; init; }
 
@@ -46,7 +46,7 @@ namespace XMADownloader.Implementation.Models
         public bool IsHeadlessBrowser { get; init; }
         public bool ExportCrawlResults { get; set; }
 
-        public XMADownloaderSettings()
+        public XmaDownloaderSettings()
         {
             SaveDescriptions = true;
             SaveHtml = true;

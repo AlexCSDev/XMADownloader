@@ -13,6 +13,7 @@ using UniversalDownloaderPlatform.DefaultImplementations;
 using UniversalDownloaderPlatform.DefaultImplementations.Interfaces;
 using UniversalDownloaderPlatform.DefaultImplementations.Models;
 using UniversalDownloaderPlatform.PuppeteerEngine;
+using XMADownloader.Common.Models;
 
 namespace XMADownloader.Implementation
 {
@@ -22,14 +23,13 @@ namespace XMADownloader.Implementation
         {
             Kernel.Load(new PuppeteerEngineModule());
 
-            Bind<IRemoteFileSizeChecker>().To<RemoteFileSizeChecker>().InSingletonScope();
+            Bind<IRemoteFileInfoRetriever>().To<RemoteFileInfoRetriever>().InSingletonScope();
             Bind<IWebDownloader>().To<XmaWebDownloader>().InSingletonScope();
-            Bind<IRemoteFilenameRetriever>().To<XmaRemoteFilenameRetriever>().InSingletonScope();
             Bind<ICrawlTargetInfoRetriever>().To<XmaCrawlTargetInfoRetriever>().InSingletonScope();
             Bind<ICrawledUrlProcessor>().To<XmaCrawledUrlProcessor>().InSingletonScope();
             Bind<IPageCrawler>().To<XmaPageCrawler>().InSingletonScope();
             Bind<IPlugin>().To<XmaDefaultPlugin>().WhenInjectedInto<IPluginManager>();
-            Bind<IUniversalDownloaderPlatformSettings>().To<XMADownloaderSettings>();
+            Bind<IUniversalDownloaderPlatformSettings>().To<XmaDownloaderSettings>();
 
             Rebind<ICookieValidator>().To<XmaCookieValidator>().InSingletonScope();
             Rebind<ICrawlResultsExporter>().To<XmaCrawlResultsExporter>().InSingletonScope();

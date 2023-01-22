@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using UniversalDownloaderPlatform.Common.Exceptions;
 using UniversalDownloaderPlatform.Common.Interfaces;
 using UniversalDownloaderPlatform.Common.Interfaces.Models;
+using UniversalDownloaderPlatform.DefaultImplementations.Interfaces;
 using XMADownloader.Implementation.Models;
 using XMADownloader.Implementation.Models.Export;
 

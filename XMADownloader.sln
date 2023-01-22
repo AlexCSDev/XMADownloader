@@ -15,9 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UniversalDownloaderPlatform
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UniversalDownloaderPlatform.Engine", "submodules\UniversalDownloaderPlatform\UniversalDownloaderPlatform.Engine\UniversalDownloaderPlatform.Engine.csproj", "{A887D576-2DDB-4DDD-93FC-3C32544C0050}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XMADownloader.Common", "XMADownloader.Common\XMADownloader.Common.csproj", "{13A08FFF-08CF-4147-ACED-43708274AA97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XMADownloader.PatreonDownloader", "XMADownloader.PatreonDownloader\XMADownloader.PatreonDownloader.csproj", "{B15A28FE-8138-424A-9358-47DE3EDCE5D5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XMADownloader.PuppeteerEngine", "XMADownloader.PuppeteerEngine\XMADownloader.PuppeteerEngine.csproj", "{502F2878-6497-493E-9E7E-AFB64508F00A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UniversalDownloaderPlatform.PuppeteerEngine", "submodules\UniversalDownloaderPlatform\UniversalDownloaderPlatform.PuppeteerEngine\UniversalDownloaderPlatform.PuppeteerEngine.csproj", "{FEABB36E-F40E-43B8-BCF8-91D39D149CAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XMADownloader.Common", "XMADownloader.Common\XMADownloader.Common.csproj", "{8E0DB960-9E97-4947-935C-B4411DC09E58}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,14 +47,18 @@ Global
 		{A887D576-2DDB-4DDD-93FC-3C32544C0050}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A887D576-2DDB-4DDD-93FC-3C32544C0050}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A887D576-2DDB-4DDD-93FC-3C32544C0050}.Release|Any CPU.Build.0 = Release|Any CPU
-		{13A08FFF-08CF-4147-ACED-43708274AA97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{13A08FFF-08CF-4147-ACED-43708274AA97}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{13A08FFF-08CF-4147-ACED-43708274AA97}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{13A08FFF-08CF-4147-ACED-43708274AA97}.Release|Any CPU.Build.0 = Release|Any CPU
-		{502F2878-6497-493E-9E7E-AFB64508F00A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{502F2878-6497-493E-9E7E-AFB64508F00A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{502F2878-6497-493E-9E7E-AFB64508F00A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{502F2878-6497-493E-9E7E-AFB64508F00A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B15A28FE-8138-424A-9358-47DE3EDCE5D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B15A28FE-8138-424A-9358-47DE3EDCE5D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B15A28FE-8138-424A-9358-47DE3EDCE5D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B15A28FE-8138-424A-9358-47DE3EDCE5D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEABB36E-F40E-43B8-BCF8-91D39D149CAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEABB36E-F40E-43B8-BCF8-91D39D149CAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEABB36E-F40E-43B8-BCF8-91D39D149CAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEABB36E-F40E-43B8-BCF8-91D39D149CAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E0DB960-9E97-4947-935C-B4411DC09E58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E0DB960-9E97-4947-935C-B4411DC09E58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E0DB960-9E97-4947-935C-B4411DC09E58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E0DB960-9E97-4947-935C-B4411DC09E58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -61,6 +67,7 @@ Global
 		{2A752CD2-66E9-455D-8160-EB7DD5AA43A0} = {B84B7F77-FEAC-4404-B299-70798AF91610}
 		{4D6CFA58-7C03-4451-AE58-7F1C148787A3} = {B84B7F77-FEAC-4404-B299-70798AF91610}
 		{A887D576-2DDB-4DDD-93FC-3C32544C0050} = {B84B7F77-FEAC-4404-B299-70798AF91610}
+		{FEABB36E-F40E-43B8-BCF8-91D39D149CAF} = {B84B7F77-FEAC-4404-B299-70798AF91610}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D69B5C66-A2F2-44AE-B347-C072E8538DF6}

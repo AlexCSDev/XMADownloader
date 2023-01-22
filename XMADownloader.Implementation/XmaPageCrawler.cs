@@ -20,6 +20,10 @@ using System.Text.RegularExpressions;
 using ConcurrentCollections;
 using UniversalDownloaderPlatform.Common.Exceptions;
 using System.Net;
+using System.Globalization;
+using XMADownloader.Implementation.Models.Export;
+using UniversalDownloaderPlatform.DefaultImplementations.Interfaces;
+using XMADownloader.Common.Models;
 
 namespace XMADownloader.Implementation
 {
@@ -31,8 +35,9 @@ namespace XMADownloader.Implementation
         private readonly XmaWebDownloader _webDownloader;
         private readonly IPluginManager _pluginManager;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Random _random;
 
-        private XMADownloaderSettings _XMADownloaderSettings;
+        private XmaDownloaderSettings _xmaDownloaderSettings;
 
         //represents "global" hash list of already parsed urls because we can't have ref variables in async methods
         //we need it to not end up in situation with endless loop of parsing mods referencing each other
@@ -47,11 +52,13 @@ namespace XMADownloader.Implementation
         {
             _webDownloader = (XmaWebDownloader)webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
             _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
+
+            _random = new Random();
         }
 
         public async Task BeforeStart(IUniversalDownloaderPlatformSettings settings)
         {
-            _XMADownloaderSettings = (XMADownloaderSettings) settings;
+            _xmaDownloaderSettings = (XmaDownloaderSettings) settings;
 
             _parsedUrls = new ConcurrentHashSet<string>();
         }
@@ -60,11 +67,13 @@ namespace XMADownloader.Implementation
         {
             XmaCrawlTargetInfo xmaCrawlTargetInfo = (XmaCrawlTargetInfo)crawlTargetInfo;
             if (xmaCrawlTargetInfo.Id < 1)
-                throw new ArgumentException("Campaign ID cannot be less than 1");
+                throw new ArgumentException("User ID cannot be less than 1");
             if (string.IsNullOrEmpty(xmaCrawlTargetInfo.Name))
-                throw new ArgumentException("Campaign name cannot be null or empty");
+                throw new ArgumentException("User name cannot be null or empty");
 
-            _logger.Debug($"Starting crawling campaign {xmaCrawlTargetInfo.Name}");
+            _logger.Debug($"Starting crawling user {xmaCrawlTargetInfo.Name}");
+            xmaCrawlTargetInfo.CrawledMods = new List<CrawledMod>();
+
             List<ICrawledUrl> crawledUrls = new List<ICrawledUrl>();
             Random rnd = new Random(Guid.NewGuid().GetHashCode());
 
@@ -77,20 +86,22 @@ namespace XMADownloader.Implementation
                 _logger.Debug($"Page #{page}");
                 string searchPageHtml = await _webDownloader.DownloadString(basePageUrl + page);
 
-                if(_XMADownloaderSettings.SaveHtml)
+                if(_xmaDownloaderSettings.SaveHtml)
                 {
-                    string path = Path.Combine(_XMADownloaderSettings.DownloadDirectory, xmaCrawlTargetInfo.Id.ToString(), $"page_{page}.html");
+                    string path = Path.Combine(_xmaDownloaderSettings.DownloadDirectory, xmaCrawlTargetInfo.Id.ToString(), $"search_page_{page}.html");
                     if(!Directory.Exists(path))
                         Directory.CreateDirectory(Path.GetDirectoryName(path));
                     await File.WriteAllTextAsync(path, searchPageHtml);
                 }
 
-                List<XmaCrawledUrl> foundUrls = await ParseSearchPage(searchPageHtml);
+                (List<XmaCrawledUrl> foundCrawledUrls, List<CrawledMod> foundCrawledMods) = await ParseSearchPage(searchPageHtml);
 
-                if (foundUrls.Count > 0)
-                    crawledUrls.AddRange(foundUrls);
+                if (foundCrawledUrls.Count > 0)
+                    crawledUrls.AddRange(foundCrawledUrls);
                 else
                     break;
+
+                xmaCrawlTargetInfo.CrawledMods.AddRange(foundCrawledMods);
 
                 await Task.Delay(500 * rnd.Next(1, 3)); //0.5 - 1 second delay
             }
@@ -100,9 +111,10 @@ namespace XMADownloader.Implementation
             return crawledUrls;
         }
 
-        private async Task<List<XmaCrawledUrl>> ParseSearchPage(string html)
+        private async Task<(List<XmaCrawledUrl>, List<CrawledMod>)> ParseSearchPage(string html)
         {
             List<XmaCrawledUrl> crawledUrls = new List<XmaCrawledUrl>();
+            List<CrawledMod> crawledMods = new List<CrawledMod>();
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
@@ -115,11 +127,13 @@ namespace XMADownloader.Implementation
                         continue;
 
                     string id = modCardUrlNode.Attributes["href"].Value.Replace("/modid/","");
-                    crawledUrls.AddRange(await ParseModPage(id));
+                    (List<XmaCrawledUrl> modCrawledUrls, List<CrawledMod> modCrawledMods) = await ParseModPage(id);
+                    crawledUrls.AddRange(modCrawledUrls);
+                    crawledMods.AddRange(modCrawledMods);
                 }
             }
 
-            return crawledUrls;
+            return (crawledUrls, crawledMods);
         }
 
         /// <summary>
@@ -128,12 +142,18 @@ namespace XMADownloader.Implementation
         /// <param name="id"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private async Task<List<XmaCrawledUrl>> ParseModPage(string id, bool isPrivate = false)
+        private async Task<(List<XmaCrawledUrl>, List<CrawledMod>)> ParseModPage(string id, bool isPrivate = false)
         {
+
             List<XmaCrawledUrl> crawledUrls = new List<XmaCrawledUrl>();
+            List<CrawledMod> crawledMods = new List<CrawledMod>();
+
             HashSet<string> parsedUrlsForThisMod = new HashSet<string>();
 
             OnPostCrawlStart(new PostCrawlEventArgs(id, true));
+
+            //XMA got pretty aggressive rate limiting when you download a lot, let's try to not trigger it
+            await Task.Delay(1000 * _random.Next(2, 4));
 
             string html = null;
 
@@ -149,25 +169,16 @@ namespace XMADownloader.Implementation
                 if(ex.StatusCode == HttpStatusCode.NotFound)
                 {
                     OnPostCrawlEnd(new PostCrawlEventArgs(id, false, $"Mod with id {id} ({(isPrivate ? "private" : "public")}) was not found (deleted or wrong url)"));
-                    return crawledUrls;
+                    return (crawledUrls, crawledMods);
                 }
                 else if(ex.StatusCode == HttpStatusCode.Forbidden)
                 {
                     OnPostCrawlEnd(new PostCrawlEventArgs(id, false, $"Access denied to mod with id {id} ({(isPrivate ? "private" : "public")})"));
-                    return crawledUrls;
+                    return (crawledUrls, crawledMods);
                 }
 
                 throw;
             }
-
-            //todo
-            /*if (_XMADownloaderSettings.SaveHtml)
-            {
-                string path = Path.Combine(_XMADownloaderSettings.DownloadDirectory, xmaCrawlTargetInfo.Id.ToString(), $"page_{page}.html");
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
-                await File.WriteAllTextAsync(Path.Combine(path, html);
-            }*/
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
@@ -176,12 +187,12 @@ namespace XMADownloader.Implementation
             if (titleNode == null)
                 throw new Exception("Title node not found!");
 
-            string modName = HttpUtility.HtmlDecode(titleNode.InnerText.Trim());
+            string modName = HttpUtility.HtmlDecode(titleNode.InnerText.Trim()).Trim();
 
             HtmlNode userLinkNode = doc.DocumentNode.SelectSingleNode("//a[contains(@class,\"user-card-link\")]");
             if (userLinkNode == null)
                 throw new Exception("User link node not found!");
-            long userId = Convert.ToInt64(userLinkNode.Attributes["href"].Value.Replace("/user/", ""));
+            long userId = Convert.ToInt64(userLinkNode.Attributes["href"].Value.Replace("/user/", "").Trim());
 
             HtmlNode filesListNode = doc.DocumentNode.SelectSingleNode("//div[contains(@class,\"tab-content\")]/div[@id=\"files\"]/div");
             if (filesListNode == null)
@@ -198,6 +209,42 @@ namespace XMADownloader.Implementation
             HtmlNode descriptionNode = doc.DocumentNode.SelectSingleNode("//div[contains(@class,\"tab-content\")]/div[@id=\"info\"]");
             if (descriptionNode == null)
                 throw new Exception($"[{id}] Description node not found!");
+
+            DateTime? publishDate = null;
+            DateTime? lastUpdateDate = null;
+            HtmlNodeCollection modDateNodes = doc.DocumentNode.SelectNodes("//div[contains(@class,\"mod-meta-block\")]");
+            foreach(HtmlNode node in modDateNodes)
+            {
+                if (lastUpdateDate != null && publishDate != null)
+                    break;
+
+                HtmlNode dateNode = null;
+                bool isVersionUpdateDate = node.InnerHtml.ToLowerInvariant().Contains("last version update");
+                bool isReleaseDate = node.InnerHtml.ToLowerInvariant().Contains("original release date");
+                if (isVersionUpdateDate || isReleaseDate)
+                {
+                    dateNode = node.SelectSingleNode("code");
+                    if (dateNode == null)
+                        throw new Exception($"[{id}] Unable to find <code> tag in update/release block");
+                }
+
+                try
+                {
+                    if (lastUpdateDate == null && isVersionUpdateDate)
+                        lastUpdateDate = DateTime.ParseExact(dateNode.InnerText.Trim(), "ddd MMM dd yyyy HH:mm:ss 'GMT'K '(Coordinated Universal Time)'", CultureInfo.InvariantCulture).ToUniversalTime(); //"M/d/yyyy, h:mm:ss tt"
+                    else if (publishDate == null && isReleaseDate)
+                        publishDate = DateTime.ParseExact(dateNode.InnerText.Trim(), "ddd MMM dd yyyy HH:mm:ss 'GMT'K '(Coordinated Universal Time)'", CultureInfo.InvariantCulture).ToUniversalTime(); //"M/d/yyyy, h:mm:ss tt"
+                }
+                catch(Exception ex)
+                {
+                    throw new Exception($"[{id}] Error while parsing publish or last update date!", ex);
+                }
+            }
+
+            if (publishDate == null)
+                throw new Exception($"[{id}] Publish date not found!");
+            if(lastUpdateDate == null)
+                throw new Exception($"[{id}] Last update date not found!");
 
             string currentUrl = await _webDownloader.GetActualUrl(primaryUrlNode.Attributes["href"].Value);
 
@@ -239,33 +286,68 @@ namespace XMADownloader.Implementation
                 }
             }
 
-            foreach(string url in parsedUrlsForThisMod)
+            XmaCrawledUrl entry = new XmaCrawledUrl
+            {
+                ModId = id,
+                Name = modName,
+                UserId = userId,
+                PublishedAt = (DateTime)publishDate,
+                UpdatedAt = (DateTime)lastUpdateDate,
+            };
+
+            string additionalFilesSaveDirectory = Path.Combine(_xmaDownloaderSettings.DownloadDirectory, entry.UserId.ToString());
+            if (/*_xmaDownloaderSettings.IsUseSubDirectories*/true &&
+                (_xmaDownloaderSettings.SaveDescriptions || _xmaDownloaderSettings.SaveDescriptions)
+                )
+            {
+                additionalFilesSaveDirectory = Path.Combine(additionalFilesSaveDirectory,
+                    PostSubdirectoryHelper.CreateNameFromPattern(entry, _xmaDownloaderSettings.SubDirectoryPattern, _xmaDownloaderSettings.MaxSubdirectoryNameLength));
+            }
+
+            if (!Directory.Exists(additionalFilesSaveDirectory))
+                Directory.CreateDirectory(additionalFilesSaveDirectory);
+
+            if (_xmaDownloaderSettings.SaveHtml)
+                await File.WriteAllTextAsync(Path.Combine(additionalFilesSaveDirectory, "modpage.html"), html);
+
+            if (_xmaDownloaderSettings.SaveDescriptions)
+                await File.WriteAllTextAsync(Path.Combine(additionalFilesSaveDirectory, "description.html"), descriptionNode.InnerHtml);
+
+            CrawledMod mod = new CrawledMod
+            {
+                Id = id,
+                PublishedAt = (DateTime)publishDate,
+                UpdatedAt = (DateTime)lastUpdateDate,
+                UserId = userId,
+                Title = modName,
+                Description = descriptionNode.InnerText
+            };
+            crawledMods.Add(mod);
+
+            foreach (string url in parsedUrlsForThisMod)
             {
                 Match modPageMatch = _modPageUrlMatchRegex.Match(url);
                 if (modPageMatch.Success && !modPageMatch.Groups[3].Success)
                 {
                     _logger.Debug($"{url} is a mod page");
-                    crawledUrls.AddRange(await ParseModPage(modPageMatch.Groups[2].Value, modPageMatch.Groups[1].Value == "private"));
+                    (List<XmaCrawledUrl> modCrawledUrls, List<CrawledMod> modCrawledMods) = 
+                        await ParseModPage(modPageMatch.Groups[2].Value, modPageMatch.Groups[1].Value == "private");
+                    crawledUrls.AddRange(modCrawledUrls);
+                    crawledMods.AddRange(modCrawledMods);
                     continue;
                 }
 
-                XmaCrawledUrl entry = new XmaCrawledUrl
-                {
-                    ModId = id,
-                    Name = modName,
-                    UserId = userId,
-                    PublishedAt = DateTime.MinValue, //todo
-                    UpdatedAt = DateTime.MinValue, //todo
-                };
-
-                entry.Url = url;
-                crawledUrls.Add(entry);
-                OnNewCrawledUrl(new NewCrawledUrlEventArgs((CrawledUrl)entry.Clone()));
+                XmaCrawledUrl subEntry = (XmaCrawledUrl)entry.Clone();
+                subEntry.Url = url;
+                crawledUrls.Add(subEntry);
+                OnNewCrawledUrl(new NewCrawledUrlEventArgs((CrawledUrl)subEntry.Clone()));
             }
 
             OnPostCrawlEnd(new PostCrawlEventArgs(id, true));
 
-            return crawledUrls;
+
+
+            return (crawledUrls, crawledMods);
         }
 
         private void OnPostCrawlStart(PostCrawlEventArgs e)

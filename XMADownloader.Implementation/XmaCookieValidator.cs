@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NLog;
 using UniversalDownloaderPlatform.Common.Exceptions;
 using UniversalDownloaderPlatform.Common.Interfaces;
+using UniversalDownloaderPlatform.DefaultImplementations.Interfaces;
 
 namespace XMADownloader.Implementation
 {

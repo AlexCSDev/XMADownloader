@@ -6,16 +6,19 @@ namespace XMADownloader.App.Models
 {
     class CommandLineOptions
     {
-        [Option("url", Required = true, HelpText = "Url of the creator's page")]
+        [Option("url", Required = true, HelpText = "Url of the user page to download")]
         public string Url { get; set; }
 
-        [Option("descriptions", Required = false, HelpText = "Save post descriptions", Default = false)]
+        [Option("descriptions", Required = false, HelpText = "Save mod descriptions into a separate html files", Default = false)]
         public bool SaveDescriptions { get; set; }
 
-        [Option("html", Required = false, HelpText = "Save raw html files", Default = false)]
+        [Option("html", Required = false, HelpText = "Save raw html files for search pages and mod pages", Default = false)]
         public bool SaveHtml { get; set; }
 
-        [Option("download-directory", Required = false, HelpText = "Directory to save all downloaded files in, default: #AppDirectory#/downloads/#CreatorName#.")]
+        [Option("export-results-json", Required = false, HelpText = "Export crawl/download results into json file", Default = false)]
+        public bool ExportCrawlJson { get; set; }
+
+        [Option("download-directory", Required = false, HelpText = "Directory to save all downloaded files in, default: #AppDirectory#/downloads.")]
         public string DownloadDirectory { get; set; }
 
         [Option("log-level", Required = false, HelpText = "Logging level. Possible options: Default, Debug, Trace. Affects both console and file logging.", Default = LogLevel.Default)]
@@ -34,7 +37,7 @@ namespace XMADownloader.App.Models
         public FileExistsAction FileExistsAction { get; set; }
 
         [Option("disable-remote-file-size-check", Required = false, 
-            HelpText = "Do not ask the server for the file size (if it's available) and do not use it in various pre-download checks if the file already exists on the disk. Warning: will result in increased bandwidth usage if used with --file-exists-action BackupIfDifferent, ReplaceIfDifferent, AlwaysReplace.", 
+            HelpText = "Do not ask the server for the file size (if it's available) and do not use it in various pre-download and post-download checks if the file already exists on the disk. Can help get around aggressive rate limits. Warning: will result in increased bandwidth usage if used with --file-exists-action BackupIfDifferent, ReplaceIfDifferent, AlwaysReplace.", 
             Default = false)]
         public bool IsDisableRemoteFileSizeCheck { get; set; }
 

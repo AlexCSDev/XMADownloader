@@ -5,10 +5,11 @@ using UniversalDownloaderPlatform.Common.Enums;
 using UniversalDownloaderPlatform.Common.Helpers;
 using UniversalDownloaderPlatform.Common.Interfaces.Models;
 using UniversalDownloaderPlatform.DefaultImplementations.Models;
+using UniversalDownloaderPlatform.PuppeteerEngine.Interfaces;
 
-namespace XMADownloader.Implementation.Models
+namespace XMADownloader.Common.Models
 {
-    public record XMADownloaderSettings : UniversalDownloaderPlatformSettings
+    public record XmaDownloaderSettings : UniversalDownloaderPlatformSettings, IPuppeteerSettings
     {
         public bool SaveDescriptions { get; init; }
 
@@ -32,14 +33,20 @@ namespace XMADownloader.Implementation.Models
         /// <summary>
         /// Filenames will be truncated to this length
         /// </summary>
-        public int MaxFilenameLength { get; init; }
+        public int MaxFilenameLength { get; init; } //todo: move this into UDP?
 
         /// <summary>
         /// Fallback to using sha256 hash and Content-Type for filenames if Content-Disposition fails
         /// </summary>
         public bool FallbackToContentTypeFilenames { get; init; }
+        public string LoginPageAddress { get { return "https://www.xivmodarchive.com/login"; } }
+        public string LoginCheckAddress { get { return "https://www.xivmodarchive.com/dashboard"; } }
+        public string CaptchaCookieRetrievalAddress { get { return null; } }
+        public Uri RemoteBrowserAddress { get; init; }
+        public bool IsHeadlessBrowser { get; init; }
+        public bool ExportCrawlResults { get; set; }
 
-        public XMADownloaderSettings()
+        public XmaDownloaderSettings()
         {
             SaveDescriptions = true;
             SaveHtml = true;
@@ -48,6 +55,7 @@ namespace XMADownloader.Implementation.Models
             FallbackToContentTypeFilenames = false;
             MaxFilenameLength = 100;
             MaxSubdirectoryNameLength = 100;
+            IsHeadlessBrowser = true;
         }
     }
 }

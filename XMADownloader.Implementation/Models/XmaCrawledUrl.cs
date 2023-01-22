@@ -49,7 +49,8 @@ namespace XMADownloader.Implementation.Models
                 //UrlType = UrlType, 
                 Name = Name,
                 PublishedAt = PublishedAt,
-                UpdatedAt = UpdatedAt
+                UpdatedAt = UpdatedAt,
+                UserId = UserId
             };
         }
     }

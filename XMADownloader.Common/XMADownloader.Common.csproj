@@ -1,8 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\submodules\UniversalDownloaderPlatform\UniversalDownloaderPlatform.DefaultImplementations\UniversalDownloaderPlatform.DefaultImplementations.csproj" />
+    <ProjectReference Include="..\submodules\UniversalDownloaderPlatform\UniversalDownloaderPlatform.PuppeteerEngine\UniversalDownloaderPlatform.PuppeteerEngine.csproj" />
+  </ItemGroup>
 
 </Project>

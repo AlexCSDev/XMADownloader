@@ -11,6 +11,7 @@ using XMADownloader.Implementation.Models;
 using UniversalDownloaderPlatform.Common.Enums;
 using UniversalDownloaderPlatform.Common.Events;
 using UniversalDownloaderPlatform.Engine;
+using XMADownloader.Common.Models;
 
 namespace XMADownloader.App
 {
@@ -18,7 +19,6 @@ namespace XMADownloader.App
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private static UniversalDownloader _universalDownloader;
-        private static PuppeteerEngine.PuppeteerCookieRetriever _cookieRetriever;
         private static IConfiguration _configuration;
         private static int _filesDownloaded;
 
@@ -103,20 +103,6 @@ namespace XMADownloader.App
                     _logger.Fatal($"Error during downloader disposal! Exception: {ex}");
                 }
             }
-
-            if (_cookieRetriever != null)
-            {
-                _logger.Debug("Disposing cookie retriever...");
-                try
-                {
-                    _cookieRetriever.Dispose();
-                    _cookieRetriever = null;
-                }
-                catch (Exception ex)
-                {
-                    _logger.Fatal($"Error during cookie retriever disposal! Exception: {ex}");
-                }
-            }
         }
 
         private static async Task RunXMADownloader(CommandLineOptions commandLineOptions)
@@ -139,7 +125,7 @@ namespace XMADownloader.App
             _universalDownloader.CrawlerMessage += UniversalDownloaderOnCrawlerMessage;
             _universalDownloader.FileDownloaded += UniversalDownloaderOnFileDownloaded;
 
-            XMADownloaderSettings settings = await InitializeSettings(commandLineOptions);
+            XmaDownloaderSettings settings = await InitializeSettings(commandLineOptions);
             await _universalDownloader.Download(commandLineOptions.Url, settings);
 
             _universalDownloader.StatusChanged -= UniversalDownloaderOnStatusChanged;
@@ -152,7 +138,7 @@ namespace XMADownloader.App
             _universalDownloader = null;
         }
 
-        private static async Task<XMADownloaderSettings> InitializeSettings(CommandLineOptions commandLineOptions)
+        private static async Task<XmaDownloaderSettings> InitializeSettings(CommandLineOptions commandLineOptions)
         {
             if (!string.IsNullOrWhiteSpace(commandLineOptions.ProxyServerAddress) &&
                 !Uri.TryCreate(commandLineOptions.ProxyServerAddress, UriKind.Absolute, out _))
@@ -160,34 +146,11 @@ namespace XMADownloader.App
                 throw new Exception($"Invalid proxy server address: {commandLineOptions.ProxyServerAddress}");
             }
 
-            _logger.Info("Retrieving cookies...");
-            if (!string.IsNullOrWhiteSpace(commandLineOptions.RemoteBrowserAddress))
-                _cookieRetriever =
-                    new PuppeteerEngine.PuppeteerCookieRetriever(new Uri(commandLineOptions.RemoteBrowserAddress));
-            else
-                _cookieRetriever = new PuppeteerEngine.PuppeteerCookieRetriever(true, commandLineOptions.ProxyServerAddress);
-            CookieContainer cookieContainer = await _cookieRetriever.RetrieveCookies();
-            if (cookieContainer == null)
-            {
-                throw new Exception("Unable to retrieve cookies");
-            }
-
-            string userAgent = await _cookieRetriever.GetUserAgent();
-            if (string.IsNullOrWhiteSpace(userAgent))
-            {
-                throw new Exception("Unable to retrieve user agent");
-            }
-
-            _cookieRetriever.Dispose();
-            _cookieRetriever = null;
-
-            await Task.Delay(1000); //wait for PuppeteerCookieRetriever to close the browser
-
-            XMADownloaderSettings settings = new XMADownloaderSettings
+            XmaDownloaderSettings settings = new XmaDownloaderSettings
             {
                 UrlBlackList = (_configuration["UrlBlackList"] ?? "").ToLowerInvariant().Split("|").ToList(),
-                UserAgent = userAgent,
-                CookieContainer = cookieContainer,
+                UserAgent = null,
+                CookieContainer = null,
                 SaveDescriptions = commandLineOptions.SaveDescriptions,
                 SaveHtml = commandLineOptions.SaveHtml,
                 DownloadDirectory = commandLineOptions.DownloadDirectory,
@@ -198,7 +161,9 @@ namespace XMADownloader.App
                 MaxSubdirectoryNameLength = commandLineOptions.MaxSubdirectoryNameLength,
                 MaxFilenameLength = commandLineOptions.MaxFilenameLength,
                 FallbackToContentTypeFilenames = commandLineOptions.FilenamesFallbackToContentType,
-                ProxyServerAddress = commandLineOptions.ProxyServerAddress
+                ProxyServerAddress = commandLineOptions.ProxyServerAddress,
+                RemoteBrowserAddress = commandLineOptions.RemoteBrowserAddress != null ? new Uri(commandLineOptions.RemoteBrowserAddress) : null,
+                ExportCrawlResults = commandLineOptions.ExportCrawlJson
             };
 
             return settings;

@@ -5,8 +5,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using NLog;
-using XMADownloader.Common.Interfaces;
-using XMADownloader.PuppeteerEngine;
 using UniversalDownloaderPlatform.Common.Exceptions;
 using UniversalDownloaderPlatform.Common.Interfaces;
 using UniversalDownloaderPlatform.Common.Interfaces.Models;
@@ -15,6 +13,7 @@ using UniversalDownloaderPlatform.DefaultImplementations.Interfaces;
 using System.IO;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace XMADownloader.Implementation
 {
@@ -22,23 +21,45 @@ namespace XMADownloader.Implementation
     {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public XmaWebDownloader(IRemoteFileSizeChecker remoteFileSizeChecker) : base(remoteFileSizeChecker)
-        {
+        private readonly Random _random;
+        private readonly SemaphoreSlim _downloadThrottlerSemaphore;
 
+        public XmaWebDownloader(ICaptchaSolver captchaSolver) : base(captchaSolver)
+        {
+            _random = new Random();
+            _downloadThrottlerSemaphore = new SemaphoreSlim(1, 1);
         }
 
-        public override async Task DownloadFile(string url, string path, string refererUrl = null)
+        public override async Task DownloadFile(string url, string path, long fileSize, string refererUrl = null)
         {
             if (string.IsNullOrWhiteSpace(refererUrl))
-                refererUrl = "https://www.xivmodarchive.com"; //set referrer to xivmodarchive.com just in case
+                refererUrl = GetReferer(url);
 
-            await base.DownloadFile(url, path, refererUrl);
+            bool isXMAurl = url.ToLowerInvariant().Contains("xivmodarchive.com");
+
+            try
+            {
+                //Throttle XMA downloads to 1 file at once + delay
+                //because of aggressive rate limiting
+                if (isXMAurl)
+                {
+                    await _downloadThrottlerSemaphore.WaitAsync();
+                    await Task.Delay(1000 * _random.Next(2, 4));
+                }
+                
+                await base.DownloadFile(url, path, fileSize, refererUrl);
+            }
+            finally
+            {
+                if (isXMAurl)
+                    _downloadThrottlerSemaphore.Release();
+            }
         }
 
         public override async Task<string> DownloadString(string url, string refererUrl = null)
         {
             if (string.IsNullOrWhiteSpace(refererUrl))
-                refererUrl = "https://www.xivmodarchive.com"; //set referrer to xivmodarchive.com just in case
+                refererUrl = GetReferer(url);
 
             return await base.DownloadString(url, refererUrl);
         }
@@ -51,7 +72,7 @@ namespace XMADownloader.Implementation
         public async Task<string> GetActualUrl(string url, string refererUrl = null)
         {
             if (string.IsNullOrWhiteSpace(refererUrl))
-                refererUrl = "https://www.xivmodarchive.com"; //set referrer to xivmodarchive.com just in case
+                refererUrl = GetReferer(url);
 
             //This is XMA url, fix it and return without additional checks
             if (url.StartsWith("/"))
@@ -106,14 +127,17 @@ namespace XMADownloader.Implementation
                     {
                         if (!responseMessage.IsSuccessStatusCode)
                         {
+                            if (await base.RunCaptchaCheck(url, refererUrl, responseMessage))
+                                return await GetActualUrlInternal(url, refererUrl, retry, retryTooManyRequests); //increase retry counter?
+
                             switch (responseMessage.StatusCode)
                             {
                                 case HttpStatusCode.BadRequest:
                                 case HttpStatusCode.Unauthorized:
-                                case HttpStatusCode.Forbidden:
                                 case HttpStatusCode.NotFound:
                                 case HttpStatusCode.MethodNotAllowed:
                                 case HttpStatusCode.Gone:
+                                case HttpStatusCode.Forbidden:
                                     throw new DownloadException($"Error status code returned: {responseMessage.StatusCode}",
                                         responseMessage.StatusCode, await responseMessage.Content.ReadAsStringAsync());
                                 case HttpStatusCode.Moved:
@@ -169,6 +193,14 @@ namespace XMADownloader.Implementation
             {
                 throw new DownloadException($"Unable to retrieve data from {url}: {ex.Message}", ex);
             }
+        }
+
+        private string GetReferer(string url)
+        {
+            if (url.Contains("patreon.com"))
+                    return "https://www.patreon.com";
+
+            return "https://www.xivmodarchive.com"; //return xivmodarchive.com for all other links just in case
         }
     }
 }

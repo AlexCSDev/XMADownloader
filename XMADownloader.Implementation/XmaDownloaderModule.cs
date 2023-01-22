@@ -6,13 +6,14 @@ using Ninject.Modules;
 using XMADownloader.Engine;
 using XMADownloader.Implementation.Interfaces;
 using XMADownloader.Implementation.Models;
-using XMADownloader.PuppeteerEngine;
 using UniversalDownloaderPlatform.Common.Interfaces;
 using UniversalDownloaderPlatform.Common.Interfaces.Models;
 using UniversalDownloaderPlatform.Common.Interfaces.Plugins;
 using UniversalDownloaderPlatform.DefaultImplementations;
 using UniversalDownloaderPlatform.DefaultImplementations.Interfaces;
 using UniversalDownloaderPlatform.DefaultImplementations.Models;
+using UniversalDownloaderPlatform.PuppeteerEngine;
+using XMADownloader.Common.Models;
 
 namespace XMADownloader.Implementation
 {
@@ -20,15 +21,18 @@ namespace XMADownloader.Implementation
     {
         public override void Load()
         {
-            Bind<IRemoteFileSizeChecker>().To<RemoteFileSizeChecker>().InSingletonScope();
+            Kernel.Load(new PuppeteerEngineModule());
+
+            Bind<IRemoteFileInfoRetriever>().To<RemoteFileInfoRetriever>().InSingletonScope();
             Bind<IWebDownloader>().To<XmaWebDownloader>().InSingletonScope();
-            Bind<IRemoteFilenameRetriever>().To<XmaRemoteFilenameRetriever>().InSingletonScope();
             Bind<ICrawlTargetInfoRetriever>().To<XmaCrawlTargetInfoRetriever>().InSingletonScope();
             Bind<ICrawledUrlProcessor>().To<XmaCrawledUrlProcessor>().InSingletonScope();
             Bind<IPageCrawler>().To<XmaPageCrawler>().InSingletonScope();
             Bind<IPlugin>().To<XmaDefaultPlugin>().WhenInjectedInto<IPluginManager>();
-            Bind<IUniversalDownloaderPlatformSettings>().To<XMADownloaderSettings>();
-            Bind<ICookieValidator>().To<XmaCookieValidator>().InSingletonScope();
+            Bind<IUniversalDownloaderPlatformSettings>().To<XmaDownloaderSettings>();
+
+            Rebind<ICookieValidator>().To<XmaCookieValidator>().InSingletonScope();
+            Rebind<ICrawlResultsExporter>().To<XmaCrawlResultsExporter>().InSingletonScope();
         }
     }
 }

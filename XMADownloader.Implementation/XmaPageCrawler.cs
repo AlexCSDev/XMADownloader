@@ -246,7 +246,7 @@ namespace XMADownloader.Implementation
             if(lastUpdateDate == null)
                 throw new Exception($"[{id}] Last update date not found!");
 
-            string currentUrl = await _webDownloader.GetActualUrl(primaryUrlNode.Attributes["href"].Value);
+            string currentUrl = await _webDownloader.GetActualUrl(HttpUtility.HtmlDecode(primaryUrlNode.Attributes["href"].Value));
 
             if (!_parsedUrls.Contains(currentUrl))
             {
@@ -263,7 +263,7 @@ namespace XMADownloader.Implementation
                     if (urlNode == null)
                         throw new Exception($"Unable to get url node for one of the additional download nodes");
 
-                    currentUrl = await _webDownloader.GetActualUrl(urlNode.Attributes["href"].Value);
+                    currentUrl = await _webDownloader.GetActualUrl(HttpUtility.HtmlDecode(urlNode.Attributes["href"].Value));
                     if (!_parsedUrls.Contains(currentUrl))
                     {
                         _parsedUrls.Add(currentUrl);
@@ -274,7 +274,7 @@ namespace XMADownloader.Implementation
             }
 
             //External urls via plugins (including direct via default plugin)
-            List<string> pluginUrls = await _pluginManager.ExtractSupportedUrls(descriptionNode.InnerHtml);
+            List<string> pluginUrls = await _pluginManager.ExtractSupportedUrls(HttpUtility.HtmlDecode(descriptionNode.InnerHtml));
             foreach (string url in pluginUrls)
             {
                 currentUrl = await _webDownloader.GetActualUrl(url);

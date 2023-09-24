@@ -56,10 +56,10 @@ namespace XMADownloader.Implementation
 
             if (!crawledUrl.IsProcessedByPlugin)
             {
-                /*if (!_XMADownloaderSettings.IsUseSubDirectories)
+                if (!_xmaDownloaderSettings.IsUseSubDirectories)
                     filename = $"{crawledUrl.ModId}_";
                 else
-                    filename = "";*/
+                    filename = "";
 
                 if (crawledUrl.Filename == null)
                     throw new DownloadException($"[{crawledUrl.ModId}] No filename for {crawledUrl.Url}!");
@@ -111,9 +111,9 @@ namespace XMADownloader.Implementation
 
             string downloadDirectory = crawledUrl.UserId.ToString();
 
-            if (/*_XMADownloaderSettings.IsUseSubDirectories*/true)
-                downloadDirectory = Path.Combine(downloadDirectory, PostSubdirectoryHelper.CreateNameFromPattern(crawledUrl, _xmaDownloaderSettings.SubDirectoryPattern, _xmaDownloaderSettings.MaxSubdirectoryNameLength));
-
+            //if (_xmaDownloaderSettings.IsUseSubDirectories)
+            //    downloadDirectory = Path.Combine(downloadDirectory, PostSubdirectoryHelper.CreateNameFromPattern(crawledUrl, _xmaDownloaderSettings.SubDirectoryPattern, _xmaDownloaderSettings.MaxSubdirectoryNameLength));
+            //_logger.Debug(crawledUrl.DownloadPath);
             crawledUrl.DownloadPath = !crawledUrl.IsProcessedByPlugin ? Path.Combine(downloadDirectory, filename) : downloadDirectory + Path.DirectorySeparatorChar;
 
             return true;

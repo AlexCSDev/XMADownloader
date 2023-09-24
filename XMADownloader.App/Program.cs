@@ -156,7 +156,7 @@ namespace XMADownloader.App
                 DownloadDirectory = commandLineOptions.DownloadDirectory,
                 FileExistsAction = commandLineOptions.FileExistsAction,
                 IsCheckRemoteFileSize = !commandLineOptions.IsDisableRemoteFileSizeCheck,
-                //IsUseSubDirectories = commandLineOptions.UseSubDirectories,
+                IsUseSubDirectories = commandLineOptions.UseSubDirectories,
                 SubDirectoryPattern = commandLineOptions.SubDirectoryPattern,
                 MaxSubdirectoryNameLength = commandLineOptions.MaxSubdirectoryNameLength,
                 MaxFilenameLength = commandLineOptions.MaxFilenameLength,

@@ -18,7 +18,7 @@ namespace XMADownloader.Common.Models
         /// <summary>
         /// Create a new directory for every post and store files of said post in that directory
         /// </summary>
-        //public bool IsUseSubDirectories { get; init; }
+        public bool IsUseSubDirectories { get; init; }
 
         /// <summary>
         /// Pattern used to generate directory name if UseSubDirectories is enabled
@@ -50,7 +50,7 @@ namespace XMADownloader.Common.Models
         {
             SaveDescriptions = true;
             SaveHtml = true;
-            //IsUseSubDirectories = false;
+            IsUseSubDirectories = false;
             SubDirectoryPattern = "[%ModId%] %PublishedAt% %PostTitle%";
             FallbackToContentTypeFilenames = false;
             MaxFilenameLength = 100;

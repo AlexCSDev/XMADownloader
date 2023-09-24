@@ -296,13 +296,13 @@ namespace XMADownloader.Implementation
             };
 
             string additionalFilesSaveDirectory = Path.Combine(_xmaDownloaderSettings.DownloadDirectory, entry.UserId.ToString());
-            if (/*_xmaDownloaderSettings.IsUseSubDirectories*/true &&
-                (_xmaDownloaderSettings.SaveDescriptions || _xmaDownloaderSettings.SaveDescriptions)
-                )
-            {
-                additionalFilesSaveDirectory = Path.Combine(additionalFilesSaveDirectory,
-                    PostSubdirectoryHelper.CreateNameFromPattern(entry, _xmaDownloaderSettings.SubDirectoryPattern, _xmaDownloaderSettings.MaxSubdirectoryNameLength));
-            }
+            //if (_xmaDownloaderSettings.IsUseSubDirectories &&
+            //    (_xmaDownloaderSettings.SaveDescriptions || _xmaDownloaderSettings.SaveDescriptions)
+            //    )
+            //{
+            //    additionalFilesSaveDirectory = Path.Combine(additionalFilesSaveDirectory,
+            //        PostSubdirectoryHelper.CreateNameFromPattern(entry, _xmaDownloaderSettings.SubDirectoryPattern, _xmaDownloaderSettings.MaxSubdirectoryNameLength));
+            //}
 
             if (!Directory.Exists(additionalFilesSaveDirectory))
                 Directory.CreateDirectory(additionalFilesSaveDirectory);

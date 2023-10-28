@@ -36,6 +36,8 @@ namespace XMADownloader.Implementation
         private readonly IPluginManager _pluginManager;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly Random _random;
+        private readonly bool _downloadUrlsInDescription;
+        private readonly bool _downloadUrlsInFilesTab;
 
         private XmaDownloaderSettings _xmaDownloaderSettings;
 
@@ -52,6 +54,8 @@ namespace XMADownloader.Implementation
         {
             _webDownloader = (XmaWebDownloader)webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
             _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
+            _downloadUrlsInDescription = false;//TODO
+            _downloadUrlsInFilesTab = false;
 
             _random = new Random();
         }
@@ -210,6 +214,10 @@ namespace XMADownloader.Implementation
             if (descriptionNode == null)
                 throw new Exception($"[{id}] Description node not found!");
 
+            HtmlNode imageNode = doc.DocumentNode.SelectSingleNode("//img[contains(@class,\"mod-carousel-image\")]");
+            if (imageNode == null)
+                throw new Exception("Image was not found");
+
             DateTime? publishDate = null;
             DateTime? lastUpdateDate = null;
             HtmlNodeCollection modDateNodes = doc.DocumentNode.SelectNodes("//div[contains(@class,\"mod-meta-block\")]");
@@ -247,7 +255,8 @@ namespace XMADownloader.Implementation
                 throw new Exception($"[{id}] Last update date not found!");
 
             string currentUrl = await _webDownloader.GetActualUrl(HttpUtility.HtmlDecode(primaryUrlNode.Attributes["href"].Value));
-
+            string modImage = await _webDownloader.GetActualUrl(HttpUtility.HtmlDecode(imageNode.Attributes["data-src"].Value));
+            _parsedUrls.Add(modImage);
             if (!_parsedUrls.Contains(currentUrl))
             {
                 _parsedUrls.Add(currentUrl);
@@ -255,7 +264,7 @@ namespace XMADownloader.Implementation
                 _logger.Debug($"[{id}] New primary url: {currentUrl}");
             }
 
-            if(additionalUrlNodes != null)
+            if(additionalUrlNodes != null && _downloadUrlsInFilesTab)
             {
                 foreach (HtmlNode node in additionalUrlNodes)
                 {
@@ -274,17 +283,21 @@ namespace XMADownloader.Implementation
             }
 
             //External urls via plugins (including direct via default plugin)
-            List<string> pluginUrls = await _pluginManager.ExtractSupportedUrls(HttpUtility.HtmlDecode(descriptionNode.InnerHtml));
-            foreach (string url in pluginUrls)
+            if (_downloadUrlsInDescription)
             {
-                currentUrl = await _webDownloader.GetActualUrl(url);
-                if (!_parsedUrls.Contains(currentUrl))
+                List<string> pluginUrls = await _pluginManager.ExtractSupportedUrls(HttpUtility.HtmlDecode(descriptionNode.InnerHtml));
+                foreach (string url in pluginUrls)
                 {
-                    _parsedUrls.Add(currentUrl);
-                    parsedUrlsForThisMod.Add(currentUrl);
-                    _logger.Debug($"[{id}] New external entry: {currentUrl}");
+                    currentUrl = await _webDownloader.GetActualUrl(url);
+                    if (!_parsedUrls.Contains(currentUrl))
+                    {
+                        _parsedUrls.Add(currentUrl);
+                        parsedUrlsForThisMod.Add(currentUrl);
+                        _logger.Debug($"[{id}] New external entry: {currentUrl}");
+                    }
                 }
             }
+            
 
             XmaCrawledUrl entry = new XmaCrawledUrl
             {
@@ -344,8 +357,6 @@ namespace XMADownloader.Implementation
             }
 
             OnPostCrawlEnd(new PostCrawlEventArgs(id, true));
-
-
 
             return (crawledUrls, crawledMods);
         }

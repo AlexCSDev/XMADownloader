@@ -9,6 +9,9 @@ namespace XMADownloader.App.Models
         [Option("url", Required = true, HelpText = "Url of the user page to download")]
         public string Url { get; set; }
 
+        [Option("nsfw", Required = false, HelpText = "Url of the user page to download",Default = false)]
+        public bool Nsfw { get; set; }
+
         [Option("descriptions", Required = false, HelpText = "Save mod descriptions into a separate html files", Default = false)]
         public bool SaveDescriptions { get; set; }
 

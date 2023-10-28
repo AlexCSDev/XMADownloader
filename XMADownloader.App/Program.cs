@@ -30,24 +30,24 @@ namespace XMADownloader.App
 
             NLogManager.ReconfigureNLog();
 
-            try
-            {
-                UpdateChecker updateChecker = new UpdateChecker();
-                (bool isUpdateAvailable, string updateMessage) = await updateChecker.IsNewVersionAvailable();
-                if (isUpdateAvailable)
-                {
-                    _logger.Warn("New version is available at https://github.com/AlexCSDev/XMADownloader/releases");
-                    if (updateMessage != null && !updateMessage.StartsWith("!"))
-                        _logger.Warn($"Note from developer: {updateMessage}");
-                }
+            //try
+            //{
+            //    UpdateChecker updateChecker = new UpdateChecker();
+            //    (bool isUpdateAvailable, string updateMessage) = await updateChecker.IsNewVersionAvailable();
+            //    if (isUpdateAvailable)
+            //    {
+            //        _logger.Warn("New version is available at https://github.com/AlexCSDev/XMADownloader/releases");
+            //        if (updateMessage != null && !updateMessage.StartsWith("!"))
+            //            _logger.Warn($"Note from developer: {updateMessage}");
+            //    }
 
-                if (updateMessage != null && updateMessage.StartsWith("!"))
-                    _logger.Warn($"Note from developer: {updateMessage.Substring(1)}");
-            }
-            catch (Exception ex)
-            {
-                _logger.Error($"Error encountered while checking for updates: {ex}", ex);
-            }
+            //    if (updateMessage != null && updateMessage.StartsWith("!"))
+            //        _logger.Warn($"Note from developer: {updateMessage.Substring(1)}");
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.Error($"Error encountered while checking for updates: {ex}", ex);
+            //}
 
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
             Console.CancelKeyPress += ConsoleOnCancelKeyPress;
@@ -163,7 +163,9 @@ namespace XMADownloader.App
                 FallbackToContentTypeFilenames = commandLineOptions.FilenamesFallbackToContentType,
                 ProxyServerAddress = commandLineOptions.ProxyServerAddress,
                 RemoteBrowserAddress = commandLineOptions.RemoteBrowserAddress != null ? new Uri(commandLineOptions.RemoteBrowserAddress) : null,
-                ExportCrawlResults = commandLineOptions.ExportCrawlJson
+                ExportCrawlResults = commandLineOptions.ExportCrawlJson,
+
+                Nsfw = commandLineOptions.Nsfw
             };
 
             return settings;

@@ -53,5 +53,10 @@ namespace XMADownloader.Implementation.Models
                 UserId = UserId
             };
         }
+
+        public override string ToString()
+        {
+            return Url;
+        }
     }
 }

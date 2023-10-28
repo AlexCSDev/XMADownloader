@@ -45,6 +45,7 @@ namespace XMADownloader.Common.Models
         public Uri RemoteBrowserAddress { get; init; }
         public bool IsHeadlessBrowser { get; init; }
         public bool ExportCrawlResults { get; set; }
+        public bool Nsfw { get; set; }
 
         public XmaDownloaderSettings()
         {
@@ -56,6 +57,7 @@ namespace XMADownloader.Common.Models
             MaxFilenameLength = 100;
             MaxSubdirectoryNameLength = 100;
             IsHeadlessBrowser = true;
+            Nsfw = false;
         }
     }
 }

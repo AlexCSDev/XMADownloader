@@ -167,7 +167,11 @@ namespace XMADownloader.Engine
                 }
 
                 crawledUrl.Filename = filename;
-                crawledUrl.FileSize = fileSize;
+
+                if (_settings.IsCheckRemoteFileSize)
+                    crawledUrl.FileSize = fileSize;
+                else
+                    crawledUrl.FileSize = 0;
             }
             catch (Exception ex)
             {

@@ -255,12 +255,16 @@ namespace XMADownloader.Implementation
                 throw new Exception($"[{id}] Last update date not found!");
 
             string currentUrl = await _webDownloader.GetActualUrl(HttpUtility.HtmlDecode(primaryUrlNode.Attributes["href"].Value));
-            string modImage = await _webDownloader.GetActualUrl(HttpUtility.HtmlDecode(imageNode.Attributes["data-src"].Value));
-            _parsedUrls.Add(modImage);
+            string modImage = await _webDownloader.GetActualUrl(HttpUtility.HtmlDecode(imageNode.Attributes["src"].Value));
+            
             if (!_parsedUrls.Contains(currentUrl))
             {
                 _parsedUrls.Add(currentUrl);
                 parsedUrlsForThisMod.Add(currentUrl);
+
+                _parsedUrls.Add(modImage);
+                parsedUrlsForThisMod.Add(modImage);
+
                 _logger.Debug($"[{id}] New primary url: {currentUrl}");
             }
 

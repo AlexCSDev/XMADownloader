@@ -56,7 +56,7 @@ namespace XMADownloader.Implementation.Models
 
         public override string ToString()
         {
-            return Url;
+            return Name;
         }
     }
 }

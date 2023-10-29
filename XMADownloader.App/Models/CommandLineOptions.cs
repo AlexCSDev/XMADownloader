@@ -9,9 +9,6 @@ namespace XMADownloader.App.Models
         [Option("url", Required = true, HelpText = "Url of the user page to download")]
         public string Url { get; set; }
 
-        [Option("nsfw", Required = false, HelpText = "Url of the user page to download",Default = false)]
-        public bool Nsfw { get; set; }
-
         [Option("descriptions", Required = false, HelpText = "Save mod descriptions into a separate html files", Default = false)]
         public bool SaveDescriptions { get; set; }
 
@@ -64,5 +61,16 @@ namespace XMADownloader.App.Models
 
         [Option("proxy-server-address", Required = false, HelpText = "The address of proxy server to use in the following format: [<proxy-scheme>://]<proxy-host>[:<proxy-port>]. Supported protocols: http(s), socks4, socks4a, socks5.")]
         public string ProxyServerAddress { get; set; }
+
+        [Option("nsfw", Required = false, HelpText = "Url of the user page to download", Default = false)]
+        public bool Nsfw { get; set; }
+
+        /// <summary>
+        /// 1 = Gear mods
+        /// 2 = Body replacement mods
+        /// 3 = 
+        /// </summary>
+        [Option("types", Required = false, HelpText = "Url of the user page to download", Default = false)]
+        public int[] ModTypes { get; set; }
     }
 }

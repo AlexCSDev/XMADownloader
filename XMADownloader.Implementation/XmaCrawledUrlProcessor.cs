@@ -51,6 +51,7 @@ namespace XMADownloader.Implementation
         public async Task<bool> ProcessCrawledUrl(ICrawledUrl udpCrawledUrl)
         {
             XmaCrawledUrl crawledUrl = (XmaCrawledUrl)udpCrawledUrl;
+            _logger.Info("HERR "+crawledUrl.Name);
 
             string filename = "";
 
@@ -64,16 +65,26 @@ namespace XMADownloader.Implementation
                 if (crawledUrl.Filename == null)
                     throw new DownloadException($"[{crawledUrl.ModId}] No filename for {crawledUrl.Url}!");
 
-                filename = crawledUrl.Filename;
+                
+                string extension = Path.GetExtension(crawledUrl.Filename);
+                _logger.Info("HERR " + extension);
+
+                //If the downloaded file is an image rename it to the mods name
+                if (extension == ".jpg" || extension == ".png" || extension == ".jpeg")
+                {
+                    filename = crawledUrl.Name + extension;
+                }
+                else //Else we set it to the orginal filename
+                    filename = crawledUrl.Filename;
 
                 _logger.Debug($"Sanitizing filename: {filename}");
                 filename = PathSanitizer.SanitizePath(filename);
                 _logger.Debug($"Sanitized filename: {filename}");
 
+
                 if (filename.Length > _xmaDownloaderSettings.MaxFilenameLength)
                 {
                     _logger.Debug($"Filename is too long, will be truncated: {filename}");
-                    string extension = Path.GetExtension(filename);
                     if (extension.Length > 4)
                     {
                         _logger.Warn($"File extension for file {filename} is longer 4 characters and won't be appended to truncated filename!");
@@ -83,6 +94,7 @@ namespace XMADownloader.Implementation
                     _logger.Debug($"Truncated filename: {filename}");
                 }
 
+                
                 string key = $"{crawledUrl.ModId}_{filename.ToLowerInvariant()}";
 
                 _fileCountDict.AddOrUpdate(key, 0, (key, oldValue) => oldValue + 1);
@@ -116,6 +128,7 @@ namespace XMADownloader.Implementation
             //_logger.Debug(crawledUrl.DownloadPath);
             crawledUrl.DownloadPath = !crawledUrl.IsProcessedByPlugin ? Path.Combine(downloadDirectory, filename) : downloadDirectory + Path.DirectorySeparatorChar;
 
+            _logger.Info("END " + filename);
             return true;
         }
     }

@@ -51,7 +51,7 @@ namespace XMADownloader.Common.Models
         {
             SaveDescriptions = true;
             SaveHtml = true;
-            IsUseSubDirectories = false;
+            IsUseSubDirectories = true;
             SubDirectoryPattern = "[%ModId%] %PublishedAt% %PostTitle%";
             FallbackToContentTypeFilenames = false;
             MaxFilenameLength = 100;

@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using XMADownloader.App.Enums;
 using UniversalDownloaderPlatform.Common.Enums;
+using System.Collections.Generic;
 
 namespace XMADownloader.App.Models
 {
@@ -62,15 +63,36 @@ namespace XMADownloader.App.Models
         [Option("proxy-server-address", Required = false, HelpText = "The address of proxy server to use in the following format: [<proxy-scheme>://]<proxy-host>[:<proxy-port>]. Supported protocols: http(s), socks4, socks4a, socks5.")]
         public string ProxyServerAddress { get; set; }
 
-        [Option("nsfw", Required = false, HelpText = "Url of the user page to download", Default = false)]
-        public bool Nsfw { get; set; }
+        [Option("download-urls-in-description", Required = false, HelpText = "Scrapes the description text for urls and downloads the files found in that url", Default = false)]
+        public bool DownloadUrlsInDescription { get; set; }
+
+        [Option("download-urls-in-filestab", Required = false, HelpText = "Download all of the files in the filetab", Default = false)]
+        public bool DownloadUrlsInFilesTab { get; set; }
+
+        [Option("download-mod-image", Required = false, HelpText = "Download the cover image for the mod", Default = true)]
+        public bool DownloadModImage { get; set; }
+
+        [Option("content-type", Required = false, HelpText = "1 = Both, 2 = SFW only, 3 = NSFW only", Default = 1)]
+        public int ContentType { get; set; }
 
         /// <summary>
         /// 1 = Gear mods
         /// 2 = Body replacement mods
-        /// 3 = 
+        /// 3 = Face mods
+        /// 4 = Hair mods
+        /// 5 = Shaders
+        /// 6 = Other mods
+        /// 7 = Minion mods
+        /// 8 = Mount mods
+        /// 10 = Skin mods
+        /// 11 = Concept matrix pose
+        /// 12 = Racial scaling mods
+        /// 13 = Anamnesis pose
+        /// 14 = VFX
+        /// 15 = Animation
+        /// 16 = Sound
         /// </summary>
-        [Option("types", Required = false, HelpText = "Url of the user page to download", Default = false)]
-        public int[] ModTypes { get; set; }
+        [Option("types", Required = false, HelpText = "Choose the modtypes you want to search for\r\nExample: --types 1 6 16\r\n1 = Gear mods\r\n2 = Body replacement mods\r\n3 = Face mods\r\n4 = Hair mods\r\n5 = Shaders\r\n6 = Other mods\r\n7 = Minion mods\r\n8 = Mount mods\r\n10 = Skin mods\r\n11 = Concept matrix pose\r\n12 = Racial scaling mods\r\n13 = Anamnesis pose\r\n14 = VFX\r\n15 = Animation\r\n16 = Sound")]
+        public IEnumerable<int> ModTypes { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Mime;
 using System.Text;
 using UniversalDownloaderPlatform.Common.Enums;
 using UniversalDownloaderPlatform.Common.Helpers;
@@ -45,7 +46,11 @@ namespace XMADownloader.Common.Models
         public Uri RemoteBrowserAddress { get; init; }
         public bool IsHeadlessBrowser { get; init; }
         public bool ExportCrawlResults { get; set; }
-        public bool Nsfw { get; set; }
+        public bool DownloadUrlsInDescription { get; set; }
+        public bool DownloadUrlsInFilesTab { get; set; }
+        public bool DownloadModImage { get; set; }
+        public int ContentType { get; set; }
+        public IEnumerable<int> ModTypes { get; set; }
 
         public XmaDownloaderSettings()
         {
@@ -57,7 +62,12 @@ namespace XMADownloader.Common.Models
             MaxFilenameLength = 100;
             MaxSubdirectoryNameLength = 100;
             IsHeadlessBrowser = true;
-            Nsfw = false;
+            DownloadUrlsInDescription = false;
+            DownloadUrlsInFilesTab = false;
+            DownloadModImage = true;
+            ContentType = 1;
+            ModTypes = new int[0];
+            
         }
     }
 }

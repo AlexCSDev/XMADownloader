@@ -165,7 +165,11 @@ namespace XMADownloader.App
                 RemoteBrowserAddress = commandLineOptions.RemoteBrowserAddress != null ? new Uri(commandLineOptions.RemoteBrowserAddress) : null,
                 ExportCrawlResults = commandLineOptions.ExportCrawlJson,
 
-                Nsfw = commandLineOptions.Nsfw
+                ContentType = commandLineOptions.ContentType,
+                DownloadModImage = commandLineOptions.DownloadModImage,
+                DownloadUrlsInDescription = commandLineOptions.DownloadUrlsInDescription,
+                DownloadUrlsInFilesTab = commandLineOptions.DownloadUrlsInFilesTab,
+                ModTypes = commandLineOptions.ModTypes
             };
 
             return settings;

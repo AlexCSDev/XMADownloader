@@ -45,7 +45,7 @@ namespace XMADownloader.App.Models
         [Option("remote-browser-address", Required = false, HelpText = "Advanced users only. Address of the browser with remote debugging enabled. Refer to documentation for more details.")]
         public string RemoteBrowserAddress { get; set; }
 
-        [Option("use-sub-directories", Required = false, HelpText = "Create a new directory inside of the download directory for every post instead of placing all files into a single directory.")]
+        [Option("use-sub-directories", Required = false, HelpText = "Create a new directory inside of the download directory for every post instead of placing all files into a single directory.", Default = true)]
         public bool UseSubDirectories { get; set; }
 
         [Option("sub-directory-pattern", Required = false, HelpText = "Pattern which will be used to create a name for the sub directories if --use-sub-directories is used. Supported parameters: %ModId%, %PublishedAt%, %PostTitle%.", Default = "[%ModId%] %PublishedAt% %PostTitle%")]

@@ -100,7 +100,6 @@ namespace XMADownloader.Implementation
                 basePageUrl += "&nsfw=true";
 
             basePageUrl += $"&author=id-{xmaCrawlTargetInfo.Id}&page=";
-            _logger.Info("HTML: " + basePageUrl);
 
             int page = 0;
             while (true)

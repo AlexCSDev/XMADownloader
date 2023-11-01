@@ -51,7 +51,6 @@ namespace XMADownloader.Implementation
         public async Task<bool> ProcessCrawledUrl(ICrawledUrl udpCrawledUrl)
         {
             XmaCrawledUrl crawledUrl = (XmaCrawledUrl)udpCrawledUrl;
-            _logger.Info("HERR "+crawledUrl.Name);
 
             string filename = "";
 
@@ -67,7 +66,6 @@ namespace XMADownloader.Implementation
 
                 
                 string extension = Path.GetExtension(crawledUrl.Filename);
-                _logger.Info("HERR " + extension);
 
                 //If the downloaded file is an image rename it to the mods name
                 if (extension == ".jpg" || extension == ".png" || extension == ".jpeg")
@@ -128,7 +126,6 @@ namespace XMADownloader.Implementation
             //_logger.Debug(crawledUrl.DownloadPath);
             crawledUrl.DownloadPath = !crawledUrl.IsProcessedByPlugin ? Path.Combine(downloadDirectory, filename) : downloadDirectory + Path.DirectorySeparatorChar;
 
-            _logger.Info("END " + filename);
             return true;
         }
     }

@@ -24,12 +24,14 @@ using System.Globalization;
 using XMADownloader.Implementation.Models.Export;
 using UniversalDownloaderPlatform.DefaultImplementations.Interfaces;
 using XMADownloader.Common.Models;
+using Castle.Core.Internal;
 
 namespace XMADownloader.Implementation
 {
     internal sealed class XmaPageCrawler : IPageCrawler
     {       
-        private const string CrawlStartUrl = "https://xivmodarchive.com/search?sortby=time_posted&sortorder=desc&types=1%2C3%2C7%2C9%2C12%2C15%2C2%2C4%2C8%2C10%2C14%2C11%2C5%2C13%2C6";
+        //private const string CrawlStartUrl = "https://xivmodarchive.com/search?sortby=time_posted&sortorder=desc&types=1%2C3%2C7%2C9%2C12%2C15%2C2%2C4%2C8%2C10%2C14%2C11%2C5%2C13%2C6";
+        private const string CrawlStartUrl = "https://xivmodarchive.com/search?sortby=time_posted&sortorder=desc&types=";
         private static Regex _modPageUrlMatchRegex = new Regex("https:\\/\\/(?>www\\.)?xivmodarchive\\.com\\/(modid|private)\\/([a-z\\-0-9]+)(\\/.+)?");
 
         private readonly XmaWebDownloader _webDownloader;
@@ -52,7 +54,7 @@ namespace XMADownloader.Implementation
         {
             _webDownloader = (XmaWebDownloader)webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
             _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
-
+            
             _random = new Random();
         }
 
@@ -77,7 +79,35 @@ namespace XMADownloader.Implementation
             List<ICrawledUrl> crawledUrls = new List<ICrawledUrl>();
             Random rnd = new Random(Guid.NewGuid().GetHashCode());
 
-            string basePageUrl = CrawlStartUrl + $"&author=id-{xmaCrawlTargetInfo.Id}&page=";
+            string basePageUrl = CrawlStartUrl;
+            if (_xmaDownloaderSettings.ModTypes.IsNullOrEmpty())
+                basePageUrl += "1%2C3%2C7%2C9%2C12%2C15%2C2%2C4%2C8%2C10%2C14%2C11%2C5%2C13%2C6";
+            else
+            {
+                int[] modtypes = (int[])_xmaDownloaderSettings.ModTypes;
+                basePageUrl += modtypes.First();
+
+                if (modtypes.Length > 1)
+                foreach(var modtype in modtypes)
+                {
+                        basePageUrl += "%2C" + modtype;
+                }
+            }
+
+            if (!_xmaDownloaderSettings.SearchText.IsNullOrEmpty())
+            {
+                string replaceSpace = _xmaDownloaderSettings.SearchText.Replace(" ", "%20");
+                basePageUrl += "&basic_text=" + replaceSpace;
+            }
+
+
+
+            if (_xmaDownloaderSettings.ContentType == 2)
+                basePageUrl += "&nsfw=false";
+            else if (_xmaDownloaderSettings.ContentType == 3)
+                basePageUrl += "&nsfw=true";
+
+            basePageUrl += $"&author=id-{xmaCrawlTargetInfo.Id}&page=";
 
             int page = 0;
             while (true)
@@ -113,6 +143,7 @@ namespace XMADownloader.Implementation
 
         private async Task<(List<XmaCrawledUrl>, List<CrawledMod>)> ParseSearchPage(string html)
         {
+            
             List<XmaCrawledUrl> crawledUrls = new List<XmaCrawledUrl>();
             List<CrawledMod> crawledMods = new List<CrawledMod>();
 
@@ -210,6 +241,10 @@ namespace XMADownloader.Implementation
             if (descriptionNode == null)
                 throw new Exception($"[{id}] Description node not found!");
 
+            HtmlNode imageNode = doc.DocumentNode.SelectSingleNode("//img[contains(@class,\"mod-carousel-image\")]");
+            if (imageNode == null)
+                throw new Exception("Image was not found");
+
             DateTime? publishDate = null;
             DateTime? lastUpdateDate = null;
             HtmlNodeCollection modDateNodes = doc.DocumentNode.SelectNodes("//div[contains(@class,\"mod-meta-block\")]");
@@ -247,15 +282,24 @@ namespace XMADownloader.Implementation
                 throw new Exception($"[{id}] Last update date not found!");
 
             string currentUrl = await _webDownloader.GetActualUrl(HttpUtility.HtmlDecode(primaryUrlNode.Attributes["href"].Value));
-
+            
+            
             if (!_parsedUrls.Contains(currentUrl))
             {
                 _parsedUrls.Add(currentUrl);
                 parsedUrlsForThisMod.Add(currentUrl);
+
                 _logger.Debug($"[{id}] New primary url: {currentUrl}");
             }
 
-            if(additionalUrlNodes != null)
+            if (_xmaDownloaderSettings.DownloadModImage)
+            {
+                string modImage = await _webDownloader.GetActualUrl(HttpUtility.HtmlDecode(imageNode.Attributes["src"].Value));
+                _parsedUrls.Add(modImage);
+                parsedUrlsForThisMod.Add(modImage);
+            }
+
+            if(additionalUrlNodes != null && _xmaDownloaderSettings.DownloadUrlsInFilesTab)
             {
                 foreach (HtmlNode node in additionalUrlNodes)
                 {
@@ -274,17 +318,21 @@ namespace XMADownloader.Implementation
             }
 
             //External urls via plugins (including direct via default plugin)
-            List<string> pluginUrls = await _pluginManager.ExtractSupportedUrls(HttpUtility.HtmlDecode(descriptionNode.InnerHtml));
-            foreach (string url in pluginUrls)
+            if (_xmaDownloaderSettings.DownloadUrlsInDescription)
             {
-                currentUrl = await _webDownloader.GetActualUrl(url);
-                if (!_parsedUrls.Contains(currentUrl))
+                List<string> pluginUrls = await _pluginManager.ExtractSupportedUrls(HttpUtility.HtmlDecode(descriptionNode.InnerHtml));
+                foreach (string url in pluginUrls)
                 {
-                    _parsedUrls.Add(currentUrl);
-                    parsedUrlsForThisMod.Add(currentUrl);
-                    _logger.Debug($"[{id}] New external entry: {currentUrl}");
+                    currentUrl = await _webDownloader.GetActualUrl(url);
+                    if (!_parsedUrls.Contains(currentUrl))
+                    {
+                        _parsedUrls.Add(currentUrl);
+                        parsedUrlsForThisMod.Add(currentUrl);
+                        _logger.Debug($"[{id}] New external entry: {currentUrl}");
+                    }
                 }
             }
+            
 
             XmaCrawledUrl entry = new XmaCrawledUrl
             {
@@ -296,13 +344,13 @@ namespace XMADownloader.Implementation
             };
 
             string additionalFilesSaveDirectory = Path.Combine(_xmaDownloaderSettings.DownloadDirectory, entry.UserId.ToString());
-            if (/*_xmaDownloaderSettings.IsUseSubDirectories*/true &&
-                (_xmaDownloaderSettings.SaveDescriptions || _xmaDownloaderSettings.SaveDescriptions)
-                )
-            {
-                additionalFilesSaveDirectory = Path.Combine(additionalFilesSaveDirectory,
-                    PostSubdirectoryHelper.CreateNameFromPattern(entry, _xmaDownloaderSettings.SubDirectoryPattern, _xmaDownloaderSettings.MaxSubdirectoryNameLength));
-            }
+            //if (_xmaDownloaderSettings.IsUseSubDirectories &&
+            //    (_xmaDownloaderSettings.SaveDescriptions || _xmaDownloaderSettings.SaveDescriptions)
+            //    )
+            //{
+            //    additionalFilesSaveDirectory = Path.Combine(additionalFilesSaveDirectory,
+            //        PostSubdirectoryHelper.CreateNameFromPattern(entry, _xmaDownloaderSettings.SubDirectoryPattern, _xmaDownloaderSettings.MaxSubdirectoryNameLength));
+            //}
 
             if (!Directory.Exists(additionalFilesSaveDirectory))
                 Directory.CreateDirectory(additionalFilesSaveDirectory);
@@ -344,8 +392,6 @@ namespace XMADownloader.Implementation
             }
 
             OnPostCrawlEnd(new PostCrawlEventArgs(id, true));
-
-
 
             return (crawledUrls, crawledMods);
         }

@@ -156,14 +156,20 @@ namespace XMADownloader.App
                 DownloadDirectory = commandLineOptions.DownloadDirectory,
                 FileExistsAction = commandLineOptions.FileExistsAction,
                 IsCheckRemoteFileSize = !commandLineOptions.IsDisableRemoteFileSizeCheck,
-                //IsUseSubDirectories = commandLineOptions.UseSubDirectories,
+                IsUseSubDirectories = commandLineOptions.UseSubDirectories,
                 SubDirectoryPattern = commandLineOptions.SubDirectoryPattern,
                 MaxSubdirectoryNameLength = commandLineOptions.MaxSubdirectoryNameLength,
                 MaxFilenameLength = commandLineOptions.MaxFilenameLength,
                 FallbackToContentTypeFilenames = commandLineOptions.FilenamesFallbackToContentType,
                 ProxyServerAddress = commandLineOptions.ProxyServerAddress,
                 RemoteBrowserAddress = commandLineOptions.RemoteBrowserAddress != null ? new Uri(commandLineOptions.RemoteBrowserAddress) : null,
-                ExportCrawlResults = commandLineOptions.ExportCrawlJson
+                ExportCrawlResults = commandLineOptions.ExportCrawlJson,
+                DownloadModImage = commandLineOptions.DownloadModImage,
+                DownloadUrlsInDescription = commandLineOptions.DownloadUrlsInDescription,
+                DownloadUrlsInFilesTab = commandLineOptions.DownloadUrlsInFilesTab,
+                SearchText = commandLineOptions.SearchText,
+                ContentType = commandLineOptions.ContentType,
+                ModTypes = commandLineOptions.ModTypes
             };
 
             return settings;

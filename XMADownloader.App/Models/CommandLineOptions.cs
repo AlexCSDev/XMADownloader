@@ -75,6 +75,9 @@ namespace XMADownloader.App.Models
         [Option("content-type", Required = false, HelpText = "1 = Both, 2 = SFW only, 3 = NSFW only", Default = 1)]
         public int ContentType { get; set; }
 
+        [Option("search-text", Required = false, HelpText = "Search for posts that include the text somewhere (title, description, tags etc)", Default = "")]
+        public string SearchText { get; set; }
+
         /// <summary>
         /// 1 = Gear mods
         /// 2 = Body replacement mods

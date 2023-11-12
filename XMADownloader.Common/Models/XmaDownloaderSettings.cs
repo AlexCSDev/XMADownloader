@@ -50,6 +50,7 @@ namespace XMADownloader.Common.Models
         public bool DownloadUrlsInFilesTab { get; set; }
         public bool DownloadModImage { get; set; }
         public int ContentType { get; set; }
+        public string SearchText { get; set; }
         public IEnumerable<int> ModTypes { get; set; }
 
         public XmaDownloaderSettings()
@@ -66,6 +67,7 @@ namespace XMADownloader.Common.Models
             DownloadUrlsInFilesTab = false;
             DownloadModImage = true;
             ContentType = 1;
+            SearchText = "";
             ModTypes = new int[0];
             
         }

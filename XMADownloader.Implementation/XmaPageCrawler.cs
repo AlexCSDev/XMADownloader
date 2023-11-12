@@ -94,6 +94,14 @@ namespace XMADownloader.Implementation
                 }
             }
 
+            if (!_xmaDownloaderSettings.SearchText.IsNullOrEmpty())
+            {
+                string replaceSpace = _xmaDownloaderSettings.SearchText.Replace(" ", "%20");
+                basePageUrl += "&basic_text=" + replaceSpace;
+            }
+
+
+
             if (_xmaDownloaderSettings.ContentType == 2)
                 basePageUrl += "&nsfw=false";
             else if (_xmaDownloaderSettings.ContentType == 3)

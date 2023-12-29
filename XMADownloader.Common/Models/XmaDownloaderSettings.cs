@@ -52,6 +52,8 @@ namespace XMADownloader.Common.Models
         public int ContentType { get; set; }
         public string SearchText { get; set; }
         public IEnumerable<int> ModTypes { get; set; }
+        public IEnumerable<int> Pages { get; set; }
+        public string SortBy { get; set; }
 
         public XmaDownloaderSettings()
         {
@@ -69,6 +71,8 @@ namespace XMADownloader.Common.Models
             ContentType = 1;
             SearchText = "";
             ModTypes = new int[0];
+            Pages = new int[0];
+            SortBy = "time_posted";
             
         }
     }

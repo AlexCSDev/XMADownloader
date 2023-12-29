@@ -75,7 +75,7 @@ namespace XMADownloader.App.Models
         [Option("content-type", Required = false, HelpText = "1 = Both, 2 = SFW only, 3 = NSFW only", Default = 1)]
         public int ContentType { get; set; }
 
-        [Option("search-text", Required = false, HelpText = "Search for posts that include the text somewhere (title, description, tags etc)", Default = "")]
+        [Option("search-text", Required = false, HelpText = "Search for posts that include the text somewhere (title, description, tags etc)")]
         public string SearchText { get; set; }
 
         /// <summary>
@@ -95,7 +95,13 @@ namespace XMADownloader.App.Models
         /// 15 = Animation
         /// 16 = Sound
         /// </summary>
-        [Option("types", Required = false, HelpText = "Choose the modtypes you want to search for\r\nExample: --types 1 6 16\r\n1 = Gear mods\r\n2 = Body replacement mods\r\n3 = Face mods\r\n4 = Hair mods\r\n5 = Shaders\r\n6 = Other mods\r\n7 = Minion mods\r\n8 = Mount mods\r\n10 = Skin mods\r\n11 = Concept matrix pose\r\n12 = Racial scaling mods\r\n13 = Anamnesis pose\r\n14 = VFX\r\n15 = Animation\r\n16 = Sound")]
+        [Option("types", Required = false, HelpText = "Choose the modtypes you want to search for\r\nExample: --types 11 13 for poses\r\n1 = Gear mods\r\n2 = Body replacement mods\r\n3 = Face mods\r\n4 = Hair mods\r\n5 = Shaders\r\n6 = Other mods\r\n7 = Minion mods\r\n8 = Mount mods\r\n10 = Skin mods\r\n11 = Concept matrix pose\r\n12 = Racial scaling mods\r\n13 = Anamnesis pose\r\n14 = VFX\r\n15 = Animation\r\n16 = Sound")]
         public IEnumerable<int> ModTypes { get; set; }
+
+        [Option("pages", Required = false, HelpText = "If you only want some certain pages. Example: --pages 1 4 5 will give you page 1, 4 and 5")]
+        public IEnumerable<int> Pages { get; set; }
+
+        [Option("sort-by", Required = false, HelpText = "Use the sort by feature on the website, always uses descending\r\nrank = Relevance\r\ntime_edited = Last Version Update\r\ntime_posted = Release Date\r\nname = Name\r\nview = Views\r\nviews_today = Views Today\r\ndownloads = Downloads\r\nfollowers = Followers", Default = "time_posted")]
+        public string SortBy { get; set; }
     }
 }

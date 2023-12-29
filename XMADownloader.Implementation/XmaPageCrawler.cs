@@ -31,7 +31,7 @@ namespace XMADownloader.Implementation
     internal sealed class XmaPageCrawler : IPageCrawler
     {       
         //private const string CrawlStartUrl = "https://xivmodarchive.com/search?sortby=time_posted&sortorder=desc&types=1%2C3%2C7%2C9%2C12%2C15%2C2%2C4%2C8%2C10%2C14%2C11%2C5%2C13%2C6";
-        private const string CrawlStartUrl = "https://xivmodarchive.com/search?sortby=time_posted&sortorder=desc&types=";
+        private const string CrawlStartUrl = "https://xivmodarchive.com/search?";
         private static Regex _modPageUrlMatchRegex = new Regex("https:\\/\\/(?>www\\.)?xivmodarchive\\.com\\/(modid|private)\\/([a-z\\-0-9]+)(\\/.+)?");
 
         private readonly XmaWebDownloader _webDownloader;
@@ -79,7 +79,15 @@ namespace XMADownloader.Implementation
             List<ICrawledUrl> crawledUrls = new List<ICrawledUrl>();
             Random rnd = new Random(Guid.NewGuid().GetHashCode());
 
+            
             string basePageUrl = CrawlStartUrl;
+
+            //add sort by order
+            basePageUrl += "sortby=" + _xmaDownloaderSettings.SortBy + "&sortorder=desc";
+
+
+            //add types
+            basePageUrl += "&types=";
             if (_xmaDownloaderSettings.ModTypes.IsNullOrEmpty())
                 basePageUrl += "1%2C3%2C7%2C9%2C12%2C15%2C2%2C4%2C8%2C10%2C14%2C11%2C5%2C13%2C6";
             else
@@ -109,10 +117,25 @@ namespace XMADownloader.Implementation
 
             basePageUrl += $"&author=id-{xmaCrawlTargetInfo.Id}&page=";
 
+            List<int> pages = _xmaDownloaderSettings.Pages.ToList();
             int page = 0;
             while (true)
             {
-                page++;
+                //if only certain pages are requested
+                if(!_xmaDownloaderSettings.Pages.IsNullOrEmpty())
+                {
+                    if (pages.IsNullOrEmpty())//once its done all pages, break
+                        break;
+
+                    page = pages.First();
+                    pages.Remove(page);
+                    
+                }
+                else
+                {
+                    page++;
+                }
+                
                 _logger.Debug($"Page #{page}");
                 string searchPageHtml = await _webDownloader.DownloadString(basePageUrl + page);
 
@@ -143,7 +166,6 @@ namespace XMADownloader.Implementation
 
         private async Task<(List<XmaCrawledUrl>, List<CrawledMod>)> ParseSearchPage(string html)
         {
-            
             List<XmaCrawledUrl> crawledUrls = new List<XmaCrawledUrl>();
             List<CrawledMod> crawledMods = new List<CrawledMod>();
 

@@ -169,7 +169,9 @@ namespace XMADownloader.App
                 DownloadUrlsInFilesTab = commandLineOptions.DownloadUrlsInFilesTab,
                 SearchText = commandLineOptions.SearchText,
                 ContentType = commandLineOptions.ContentType,
-                ModTypes = commandLineOptions.ModTypes
+                ModTypes = commandLineOptions.ModTypes,
+                Pages = commandLineOptions.Pages,
+                SortBy = commandLineOptions.SortBy
             };
 
             return settings;
